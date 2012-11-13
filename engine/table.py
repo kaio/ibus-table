@@ -1052,57 +1052,57 @@ class tabengine (ibus.EngineBase):
         # taken and modified from PinYin.py :)
         if self._mode == 1: # refresh mode
             if self._status == u'CN':
-                self._set_property(self._status_property, 'chinese.svg', 'Chinese Mode', 'Switch to English mode')
+                self._set_property(self._status_property, 'chinese.svg', _('Chinese Mode'), _('Switch to English mode'))
             else:
-                self._set_property(self._status_property, 'ibus-table.svg', self._status, 'Switch to English mode')
+                self._set_property(self._status_property, 'ibus-table.svg', self._status, _('Switch to English mode'))
         else:
-            self._set_property(self._status_property, 'english.svg', 'English Mode', 'Switch to Table mode')
+            self._set_property(self._status_property, 'english.svg', _('English Mode'), _('Switch to Table mode'))
 
         if self._full_width_letter[self._mode]:
-            self._set_property(self._letter_property, 'full-letter.svg', 'Full Letter', 'Switch to half-width letter')
+            self._set_property(self._letter_property, 'full-letter.svg', _('Full Letter'), _('Switch to half-width letter'))
         else:
-            self._set_property(self._letter_property, 'half-letter.svg', 'Half Letter', 'Switch to full-width letter')
+            self._set_property(self._letter_property, 'half-letter.svg', _('Half Letter'), _('Switch to full-width letter'))
 
         if self._full_width_punct[self._mode]:
-            self._set_property(self._punct_property, 'full-punct.svg', 'Full-width Punctuation', 'Switch to half-width punctuation')
+            self._set_property(self._punct_property, 'full-punct.svg', _('Full-width Punctuation'), _('Switch to half-width punctuation'))
         else:
-            self._set_property(self._punct_property, 'half-punct.svg', 'Half-width Punctuation', 'Switch to full-width punctuation')
+            self._set_property(self._punct_property, 'half-punct.svg', _('Half-width Punctuation'), _('Switch to full-width punctuation'))
 
         if self._editor._py_mode:
-            self._set_property(self._py_property, 'py-mode.svg', 'PinYin Mode', 'Switch to Table mode')
+            self._set_property(self._py_property, 'py-mode.svg', _('PinYin Mode'), _('Switch to Table mode'))
         else:
-            self._set_property(self._py_property, 'tab-mode.svg', 'Table Mode', 'Switch to PinYin mode')
+            self._set_property(self._py_property, 'tab-mode.svg', _('Table Mode'), _('Switch to PinYin mode'))
 
         if self._editor._onechar:
-            self._set_property(self._onechar_property, 'onechar.svg', 'Single Char Mode', 'Switch to phrase mode')
+            self._set_property(self._onechar_property, 'onechar.svg', _('Single Char Mode'), _('Switch to phrase mode'))
         else:
-            self._set_property(self._onechar_property, 'phrase.svg', 'Phrase Mode', 'Switch to single char mode')
+            self._set_property(self._onechar_property, 'phrase.svg', _('Phrase Mode'), _('Switch to single char mode'))
 
         if self._auto_commit:
-            self._set_property(self._auto_commit_property, 'acommit.svg', 'Direct Commit Mode', 'Switch to normal commit mode, which use space to commit') 
+            self._set_property(self._auto_commit_property, 'acommit.svg', _('Direct Commit Mode'), _('Switch to normal commit mode, which use space to commit')) 
         else:
-            self._set_property(self._auto_commit_property, 'ncommit.svg', 'Normal Commit Mode', 'Switch to direct commit mode')
+            self._set_property(self._auto_commit_property, 'ncommit.svg', _('Normal Commit Mode'), _('Switch to direct commit mode'))
 
         # the chinese_mode:
         if self.db._is_chinese:
             if self._editor._chinese_mode == 0:
-                self._set_property(self._cmode_property, 'sc-mode.svg', 'Simplified Chinese Mode', 'Switch to Traditional Chinese mode')
+                self._set_property(self._cmode_property, 'sc-mode.svg', _('Simplified Chinese Mode'), _('Switch to Traditional Chinese mode'))
             elif self._editor._chinese_mode == 1:
-                self._set_property(self._cmode_property, 'tc-mode.svg', 'Traditional Chinese Mode', 'Switch to Simplify Chinese first Big Charset Mode')
+                self._set_property(self._cmode_property, 'tc-mode.svg', _('Traditional Chinese Mode'), _('Switch to Simplify Chinese first Big Charset Mode'))
             elif self._editor._chinese_mode == 2:
-                self._set_property(self._cmode_property, 'scb-mode.svg', 'Simplified Chinese First Big Charset Mode', 'Switch to Traditional Chinese first Big Charset Mode')
+                self._set_property(self._cmode_property, 'scb-mode.svg', _('Simplified Chinese First Big Charset Mode'), _('Switch to Traditional Chinese first Big Charset Mode'))
             elif self._editor._chinese_mode == 3:
-                self._set_property(self._cmode_property, 'tcb-mode.svg', 'Traditional Chinese First Big Charset Mode', 'Switch to Big Charset Mode')
+                self._set_property(self._cmode_property, 'tcb-mode.svg', _('Traditional Chinese First Big Charset Mode'), _('Switch to Big Charset Mode'))
             elif self._editor._chinese_mode == 4:
-                self._set_property(self._cmode_property, 'cb-mode.svg', 'Big Chinese Mode', 'Switch to Simplified Chinese Mode')
+                self._set_property(self._cmode_property, 'cb-mode.svg', _('Big Chinese Mode'), _('Switch to Simplified Chinese Mode'))
 
         # use buildin method to update properties :)
         map (self.update_property, self.properties)
 
     def _set_property (self, property, icon, label, tooltip):
-        property.set_icon ( u'%s%s' % (self._icon_dir, icon ) ) 
-        property.set_label ( _( unicode(label) ) )
-        property.set_tooltip ( _( unicode(tooltip) ) )
+        property.set_icon ( u'%s%s' % (self._icon_dir, icon ) )
+        property.set_label ( unicode(label) )
+        property.set_tooltip ( unicode(tooltip) )
 
     def _change_mode (self):
         '''Shift input mode, TAB -> EN -> TAB

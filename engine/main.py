@@ -161,8 +161,10 @@ def main():
         #    Elements
         dbs = os.listdir(db_dir)
         dbs = filter (lambda x: x.endswith('.db'), dbs)
-        byo_dbs = os.listdir(byo_db_dir)
-        byo_dbs = filter (lambda x: x.endswith('.db'), byo_dbs)
+        byo_dbs = []
+        if os.path.isdir(byo_db_dir):
+            byo_dbs = os.listdir(byo_db_dir)
+            byo_dbs = filter (lambda x: x.endswith('.db'), byo_dbs)
        
         _all_dbs = []
         for _db in dbs:
