@@ -22,12 +22,10 @@
 # $Id: $
 #
 
-import ibus
-from ibus.exception import *
+from gi.repository import IBus
 import table
 import tabsqlitedb
 import os
-import dbus
 from re import compile as re_compile
 
 path_patt = re_compile(r'[^a-zA-Z0-9_/]')
@@ -39,7 +37,7 @@ N_ = lambda a : a
 engine_base_path = "/com/redhat/IBus/engines/table/%s/engine/"
 
 
-class EngineFactory (ibus.EngineFactoryBase):
+class EngineFactory (IBus.Factory):
     """Table IM Engine Factory"""
     def __init__ (self, bus, db="", icon=""):
         # here the db should be the abs path to sql db
@@ -60,19 +58,11 @@ class EngineFactory (ibus.EngineFactoryBase):
         
         # init factory
         self.bus = bus
-        super(EngineFactory,self).__init__ (bus)
+        super(EngineFactory,self).__init__ (connection=bus.get_connection(),
+                                            object_path=IBus.PATH_FACTORY)
         self.engine_id=0
-        try:
-            bus = dbus.Bus()
-            user = os.path.basename( os.path.expanduser('~') )
-            self._sm_bus = bus.get_object ("org.ibus.table.SpeedMeter.%s"\
-                    % user, "/org/ibus/table/SpeedMeter")
-            self._sm =  dbus.Interface(self._sm_bus,\
-                    "org.ibus.table.SpeedMeter") 
-        except:
-            self._sm = None
     
-    def create_engine(self, engine_name):
+    def do_create_engine(self, engine_name):
         # because we need db to be past to Engine
         # the type (engine_name) == dbus.String
         name = engine_name.encode ('utf8')
@@ -105,7 +95,7 @@ class EngineFactory (ibus.EngineFactoryBase):
             print "fail to create engine %s" % engine_name
             import traceback
             traceback.print_exc ()
-            raise IBusException("Can not create engine %s" % engine_name)
+            raise Exception("Can not create engine %s" % engine_name)
 
     def do_destroy (self):
         '''Destructor, which finish some task for IME'''
@@ -114,10 +104,6 @@ class EngineFactory (ibus.EngineFactoryBase):
         for _db in self.dbdict:
             self.dbdict[_db].sync_usrdb ()
         ##print "Have synced user db\n"
-        try:
-            self._sm.Quit()
-        except:
-            pass
-        super(EngineFactory,self).do_destroy()
+        super(EngineFactory,self).destroy()
 
 
