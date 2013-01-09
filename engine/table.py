@@ -199,10 +199,8 @@ class editor(object):
         self._lookup_table = IBus.LookupTable.new(
             page_size=__page_size,
             cursor_pos=0,
-            cursor_visible=False,
+            cursor_visible=True,
             round=True)
-        self._lookup_table.set_cursor_visible(False)
-        self._lookup_table.set_page_size(__page_size)
         self._lookup_table.set_orientation (__orientation)
         # self._select_keys: a list of chars for select keys
         self.init_select_keys()
@@ -307,7 +305,7 @@ class editor(object):
         self._chars = [[],[],[]]
         self._tabkey_list = []
         self._lookup_table.clear()
-        self._lookup_table.set_cursor_visible(False)
+        self._lookup_table.set_cursor_visible(True)
         self._candidates = [[],[]]
 
     def over_input (self):
@@ -627,7 +625,7 @@ class editor(object):
                                   attr.get_end_index())
             i += 1
         self._lookup_table.append_candidate (text)
-        self._lookup_table.set_cursor_visible(False)
+        self._lookup_table.set_cursor_visible(True)
 
     def filter_candidates (self, candidates):
         '''Filter candidates if IME is Chinese'''
@@ -669,7 +667,7 @@ class editor(object):
                 only_one_last = self.one_candidate()
                 # do enquiry
                 self._lookup_table.clear()
-                self._lookup_table.set_cursor_visible(False)
+                self._lookup_table.set_cursor_visible(True)
                 if self._tabkey_list:
                     # here we need to consider two parts, table and pinyin
                     # first table
@@ -714,7 +712,7 @@ class editor(object):
                         #else:
                         #    self.pop_input ()
                         #    self._lookup_table.clear()
-                        #    self._lookup_table.set_cursor_visible(False)
+                        #    self._lookup_table.set_cursor_visible(True)
                         #    return False
                         ###################
                         ## new manner, we add new char to invalid input
@@ -748,7 +746,7 @@ class editor(object):
                                 else:
                                     self.pop_input ()
                                     self._lookup_table.clear()
-                                    self._lookup_table.set_cursor_visible(False)
+                                    self._lookup_table.set_cursor_visible(True)
                                     return False
                             else:    
                                 # this is not a punct or not a valid phrase
@@ -760,7 +758,7 @@ class editor(object):
                         self._candidates[0] =[]
                     else:
                         self._lookup_table.clear()
-                        self._lookup_table.set_cursor_visible(False)
+                        self._lookup_table.set_cursor_visible(True)
                 self._candidates[1] = self._candidates[0]
 
         return True    
