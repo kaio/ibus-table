@@ -26,6 +26,7 @@ __all__ = (
 )
 
 import os
+import string
 from gi.repository import IBus
 from gi.repository import GLib
 from curses import ascii
@@ -1894,27 +1895,60 @@ class tabengine (IBus.Engine):
             return True
         return False
 
+    def config_section_normalize(self, section):
+        # This function replaces _: with - in the dconf
+        # section and converts to lower case to make
+        # the comparison of the dconf sections work correctly.
+        # I avoid using .lower() here because it is locale dependent,
+        # when using .lower() this would not achieve the desired
+        # effect of comparing the dconf sections case insentively
+        # in some locales, it would fail for example if Turkish
+        # locale (tr_TR.UTF-8) is set.
+        if type(section) == type(u''):
+            # translate() does not work in Python’s internal Unicode type
+            section = section.encode('utf-8')
+        return re.sub(r'[_:]', r'-', section).translate(
+            string.maketrans(string.ascii_uppercase, string.ascii_lowercase ))
+
     def config_value_changed_cb (self, config, section, name, value):
+        if self.config_section_normalize(self._config_section) != self.config_section_normalize(section):
+            return
+        print "config value %(n)s for engine %(en)s changed" %{'n': name, 'en': self._name}
         value = variant_to_value(value)
-        if section == self._config_section:
-            if name == u'AutoCommit':
-                self._auto_commit = value
-            elif name == u'ChineseMode':
-                self._editor._chinese_mode = value
-            elif name == u'EnDefFullWidthLetter':
-                self._full_width_letter[0] = value
-            elif name == u'EnDefFullWidthPunct':
-                self._full_width_punct[0] = value
-            elif name == u'LookupTableOrientation':
-                self._editor._lookup_table.set_orientation (value)
-            elif name == u'LookupTableSelectKeys':
-                self._editor.set_select_keys (value)
-            elif name == u'OneChar':
-                self._editor._onechar = value
-            elif name == u'TabDefFullWidthLetter':
-                self._full_width_letter[1] = value
-            elif name == u'TabDefFullWidthPunct':
-                self._full_width_punct[1] = value
+        if name == u'autocommit':
+            self._auto_commit = value
+            self._refresh_properties()
+            return
+        elif name == u'chinesemode':
+            self._editor._chinese_mode = value
+            self._refresh_properties()
+            return
+        elif name == u'endeffullwidthletter':
+            self._full_width_letter[0] = value
+            self._refresh_properties()
+            return
+        elif name == u'endeffullwidthpunct':
+            self._full_width_punct[0] = value
+            self._refresh_properties()
+            return
+        elif name == u'lookuptableorientation':
+            self._editor._lookup_table.set_orientation (value)
+            return
+        elif name == u'lookuptableselectkeys':
+            self._editor.set_select_keys (value)
+            return
+        elif name == u'onechar':
+            self._editor._onechar = value
+            self._refresh_properties()
+            return
+        elif name == u'tabdeffullwidthletter':
+            self._full_width_letter[1] = value
+            self._refresh_properties()
+            return
+        elif name == u'tabdeffullwidthpunct':
+            self._full_width_punct[1] = value
+            self._refresh_properties()
+            return
 
     # for further implementation :)
     @classmethod
