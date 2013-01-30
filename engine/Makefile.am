@@ -20,6 +20,7 @@
 #
 
 engine_table_PYTHON = \
+	chinese_variants.py \
 	factory.py \
 	main.py \
 	table.py \

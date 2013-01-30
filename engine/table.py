@@ -217,11 +217,11 @@ class editor(object):
         if self._onechar == None:
             self_onechar = False
         # self._chinese_mode: the candidate filter mode,
-        #   0 is simplify Chinese
-        #   1 is traditional Chinese
-        #   2 is Big charset mode, but simplify Chinese first
-        #   3 is Big charset mode, but traditional Chinese first
-        #   4 is Big charset mode.
+        #   0 means to show simplified Chinese only
+        #   1 means to show traditional Chinese only
+        #   2 means to show all characters but show simplified Chinese first
+        #   3 means to show all characters but show traditional Chinese first
+        #   4 means to show all characters
         # we use LC_CTYPE or LANG to determine which one to use
         self._chinese_mode = variant_to_value(self._config.get_value(
                 self._config_section,
@@ -636,13 +636,13 @@ class editor(object):
             return candidates[:]
         bm_index = self._pt.index('category')
         if self._chinese_mode == 2:
-            # big charset with SC first
+            # All Chinese characters with simplified Chinese first
             return  filter (lambda x: x[bm_index] & 1, candidates)\
                     +filter (lambda x: x[bm_index] & (1 << 1) and \
                             (not x[bm_index] & 1), candidates)\
                     + filter (lambda x: x[bm_index] & (1 << 2), candidates)
         elif self._chinese_mode == 3:
-            # big charset with SC first
+            # All Chinese characters with traditional Chinese first
             return  filter (lambda x: x[bm_index] & (1 << 1), candidates)\
                     +filter (lambda x: x[bm_index] & 1 and\
                     (not x[bm_index] & (1<<1)) , candidates)\
