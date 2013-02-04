@@ -1287,7 +1287,7 @@ class tabengine (IBus.Engine):
                 self._set_property(self._cmode_property, 'tcb-mode.svg', _('Traditional Chinese First Big Charset Mode'), _('Switch to Big Charset Mode'))
             elif self._editor._chinese_mode == 4:
                 self._set_property(self._cmode_property, 'cb-mode.svg', _('Big Chinese Mode'), _('Switch to Simplified Chinese Mode'))
-        self.update_property(self._cmode_property)
+            self.update_property(self._cmode_property)
 
     def _set_property (self, property, icon, label, tooltip):
         property.set_icon ( u'%s%s' % (self._icon_dir, icon ) )
