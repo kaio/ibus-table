@@ -54,7 +54,10 @@ tab_dict = {
     # for translit
     gen_uni('ä'):95,
     gen_uni('ö'):96,
-    gen_uni('ü'):97
+    gen_uni('ü'):97,
+    gen_uni('Ä'):98,
+    gen_uni('Ö'):99,
+    gen_uni('Ü'):100
     }
 
 tab_key_list = tab_dict.keys()

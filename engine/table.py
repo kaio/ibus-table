@@ -26,6 +26,7 @@ __all__ = (
 )
 
 import os
+import string
 from gi.repository import IBus
 from gi.repository import GLib
 from curses import ascii
@@ -217,17 +218,26 @@ class editor(object):
         if self._onechar == None:
             self_onechar = False
         # self._chinese_mode: the candidate filter mode,
-        #   0 is simplify Chinese
-        #   1 is traditional Chinese
-        #   2 is Big charset mode, but simplify Chinese first
-        #   3 is Big charset mode, but traditional Chinese first
-        #   4 is Big charset mode.
+        #   0 means to show simplified Chinese only
+        #   1 means to show traditional Chinese only
+        #   2 means to show all characters but show simplified Chinese first
+        #   3 means to show all characters but show traditional Chinese first
+        #   4 means to show all characters
         # we use LC_CTYPE or LANG to determine which one to use
         self._chinese_mode = variant_to_value(self._config.get_value(
                 self._config_section,
                 "ChineseMode"))
         if self._chinese_mode == None:
             self._chinese_mode = self.get_chinese_mode()
+        
+        self._auto_select = variant_to_value(self._config.get_value(
+                self._config_section,
+                "AutoSelect"))
+        if self._auto_select == None:
+            if self.db.get_ime_property('auto_select') != None:
+                self._auto_select = self.db.get_ime_property('auto_select').lower() == u'true'
+            else:
+                self._auto_select = False
 
     def init_select_keys(self):
         # __select_keys: lookup table select keys/labels
@@ -636,13 +646,13 @@ class editor(object):
             return candidates[:]
         bm_index = self._pt.index('category')
         if self._chinese_mode == 2:
-            # big charset with SC first
+            # All Chinese characters with simplified Chinese first
             return  filter (lambda x: x[bm_index] & 1, candidates)\
                     +filter (lambda x: x[bm_index] & (1 << 1) and \
                             (not x[bm_index] & 1), candidates)\
                     + filter (lambda x: x[bm_index] & (1 << 2), candidates)
         elif self._chinese_mode == 3:
-            # big charset with SC first
+            # All Chinese characters with traditional Chinese first
             return  filter (lambda x: x[bm_index] & (1 << 1), candidates)\
                     +filter (lambda x: x[bm_index] & 1 and\
                     (not x[bm_index] & (1<<1)) , candidates)\
@@ -728,7 +738,9 @@ class editor(object):
                             if ascii.ispunct (self._chars[0][-1].encode('ascii')) \
                                     or len (self._chars[0][:-1]) \
                                     in self.db.pkeylens \
-                                    or only_one_last:
+                                    or only_one_last \
+                                    or self._auto_select:
+                                    
                                 # because we use [!@#$%] to denote [12345]
                                 # in py_mode, so we need to distinguish them
                                 ## old manner:
@@ -750,7 +762,7 @@ class editor(object):
                                     self._lookup_table.clear()
                                     self._lookup_table.set_cursor_visible(True)
                                     return False
-                            else:    
+                            else:
                                 # this is not a punct or not a valid phrase
                                 # last time
                                 self._chars[1].append( self._chars[0].pop() )
@@ -1142,11 +1154,22 @@ class tabengine (IBus.Engine):
             self._full_width_punct[1] = self.db.get_ime_property('def_full_width_punct').lower() == u'true'
         # some properties we will involved, Property is taken from scim.
         #self._setup_property = Property ("setup", _("Setup"))
+        
         self._auto_commit = variant_to_value(self._config.get_value(
                 self._config_section,
                 "AutoCommit"))
         if self._auto_commit == None:
             self._auto_commit = self.db.get_ime_property('auto_commit').lower() == u'true'
+        
+        self._auto_select = variant_to_value(self._config.get_value(
+                self._config_section,
+                "AutoSelect"))
+        if self._auto_select == None:
+            if self.db.get_ime_property('auto_select') != None:
+                self._auto_select = self.db.get_ime_property('auto_select').lower() == u'true'
+            else:
+                self._auto_select = False
+        
         # the commit phrases length
         self._len_list = [0]
         # connect to SpeedMeter
@@ -1287,7 +1310,7 @@ class tabengine (IBus.Engine):
                 self._set_property(self._cmode_property, 'tcb-mode.svg', _('Traditional Chinese First Big Charset Mode'), _('Switch to Big Charset Mode'))
             elif self._editor._chinese_mode == 4:
                 self._set_property(self._cmode_property, 'cb-mode.svg', _('Big Chinese Mode'), _('Switch to Simplified Chinese Mode'))
-        self.update_property(self._cmode_property)
+            self.update_property(self._cmode_property)
 
     def _set_property (self, property, icon, label, tooltip):
         property.set_icon ( u'%s%s' % (self._icon_dir, icon ) )
@@ -1729,14 +1752,17 @@ class tabengine (IBus.Engine):
             #  on lookup page
             if IBus.KEY_space in self._page_down_keys:
                 res = self._editor.page_down()
-                self._update_lookup_table ()
+                self._update_ui ()
                 return res
             else:
                 o_py = self._editor._py_mode
                 sp_res = self._editor.space ()
                 #return (KeyProcessResult,whethercommit,commitstring)
                 if sp_res[0]:
-                    self.commit_string (sp_res[1])
+                    if self._auto_select:
+                        self.commit_string ("%s " %sp_res[1])
+                    else:
+                        self.commit_string (sp_res[1])
                     #self.add_string_len(sp_res[1])
                     self.db.check_phrase (sp_res[1], sp_res[2])
                 else:
@@ -1801,13 +1827,13 @@ class tabengine (IBus.Engine):
         elif key.code in self._page_down_keys \
                 and self._editor._candidates[0]:
             res = self._editor.page_down()
-            self._update_lookup_table ()
+            self._update_ui ()
             return res
 
         elif key.code in self._page_up_keys \
                 and self._editor._candidates[0]:
             res = self._editor.page_up ()
-            self._update_lookup_table ()
+            self._update_ui ()
             return res
 
         elif keychar in self._editor.get_select_keys() and self._editor._candidates[0]:
@@ -1884,37 +1910,70 @@ class tabengine (IBus.Engine):
 
     def do_page_up (self):
         if self._editor.page_up ():
-            self._update_lookup_table ()
+            self._update_ui ()
             return True
         return False
 
     def do_page_down (self):
         if self._editor.page_down ():
-            self._update_lookup_table ()
+            self._update_ui ()
             return True
         return False
 
+    def config_section_normalize(self, section):
+        # This function replaces _: with - in the dconf
+        # section and converts to lower case to make
+        # the comparison of the dconf sections work correctly.
+        # I avoid using .lower() here because it is locale dependent,
+        # when using .lower() this would not achieve the desired
+        # effect of comparing the dconf sections case insentively
+        # in some locales, it would fail for example if Turkish
+        # locale (tr_TR.UTF-8) is set.
+        if type(section) == type(u''):
+            # translate() does not work in Python’s internal Unicode type
+            section = section.encode('utf-8')
+        return re.sub(r'[_:]', r'-', section).translate(
+            string.maketrans(string.ascii_uppercase, string.ascii_lowercase ))
+
     def config_value_changed_cb (self, config, section, name, value):
+        if self.config_section_normalize(self._config_section) != self.config_section_normalize(section):
+            return
+        print "config value %(n)s for engine %(en)s changed" %{'n': name, 'en': self._name}
         value = variant_to_value(value)
-        if section == self._config_section:
-            if name == u'AutoCommit':
-                self._auto_commit = value
-            elif name == u'ChineseMode':
-                self._editor._chinese_mode = value
-            elif name == u'EnDefFullWidthLetter':
-                self._full_width_letter[0] = value
-            elif name == u'EnDefFullWidthPunct':
-                self._full_width_punct[0] = value
-            elif name == u'LookupTableOrientation':
-                self._editor._lookup_table.set_orientation (value)
-            elif name == u'LookupTableSelectKeys':
-                self._editor.set_select_keys (value)
-            elif name == u'OneChar':
-                self._editor._onechar = value
-            elif name == u'TabDefFullWidthLetter':
-                self._full_width_letter[1] = value
-            elif name == u'TabDefFullWidthPunct':
-                self._full_width_punct[1] = value
+        if name == u'autocommit':
+            self._auto_commit = value
+            self._refresh_properties()
+            return
+        elif name == u'chinesemode':
+            self._editor._chinese_mode = value
+            self._refresh_properties()
+            return
+        elif name == u'endeffullwidthletter':
+            self._full_width_letter[0] = value
+            self._refresh_properties()
+            return
+        elif name == u'endeffullwidthpunct':
+            self._full_width_punct[0] = value
+            self._refresh_properties()
+            return
+        elif name == u'lookuptableorientation':
+            self._editor._lookup_table.set_orientation (value)
+            return
+        elif name == u'lookuptableselectkeys':
+            self._editor.set_select_keys (value)
+            return
+        elif name == u'onechar':
+            self._editor._onechar = value
+            self._refresh_properties()
+            return
+        elif name == u'tabdeffullwidthletter':
+            self._full_width_letter[1] = value
+            self._refresh_properties()
+            return
+        elif name == u'tabdeffullwidthpunct':
+            self._full_width_punct[1] = value
+            self._refresh_properties()
+            return
 
     # for further implementation :)
     @classmethod

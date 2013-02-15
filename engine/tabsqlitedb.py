@@ -30,6 +30,7 @@ import tabdict
 import uuid
 import time
 import re
+import chinese_variants
 
 patt_r = re.compile(r'c([ea])(\d):(.*)')
 patt_p = re.compile(r'p(-{0,1}\d)(-{0,1}\d)')
@@ -98,6 +99,7 @@ class tabsqlitedb:
                       'user_can_define_phrase':'FALSE',
                       'pinyin_mode':'FALSE',
                       'dynamic_adjust':'FALSE',
+                      'auto_select':'false',
                       'auto_commit':'false',
                       #'no_check_chars':u'',
                       'description':'A IME under IBus Table',
@@ -487,52 +489,7 @@ class tabsqlitedb:
             user_freq = 0
         # now we will set the category bits if this is chinese
         if self._is_chinese:
-            # this is the bitmask we will use,
-            # from low to high, 1st bit is simplify Chinese,
-            # 2nd bit is traditional Chinese,
-            # 3rd bit means out of gbk
-            category = 0
-            # make sure that we got a unicode string
-            if type(phrase) != type(u''):
-                phrase = phrase.decode('utf8')
-            tmp_phrase = ''.join(re.findall(u'['
-                                            + u'\u4E00-\u9FCB'
-                                            + u'\u3400-\u4DB5'
-                                            + u'\uF900-\uFaFF'
-                                            + u'\U00020000-\U0002A6D6'
-                                            + u'\U0002A700-\U0002B734'
-                                            + u'\U0002B740-\U0002B81D'
-                                            + u'\U0002F800-\U0002FA1D'
-                                            + u']+',
-                                            phrase))
-            # first whether in gb2312
-            try:
-                tmp_phrase.encode('gb2312')
-                category |= 1
-            except:
-                if '〇'.decode('utf8') in tmp_phrase:
-                    # we add '〇' into SC as well
-                    category |= 1
-            # second check big5-hkscs
-            try:
-                tmp_phrase.encode('big5hkscs')
-                category |= 1 << 1
-            except:
-                # then check whether in gbk,
-                if category & 1:
-                    # already know in SC
-                    pass
-                else:
-                    # need to check
-                    try:
-                        tmp_phrase.encode('gbk')
-                        category |= 1
-                    except:
-                        # not in gbk
-                        pass
-            # then set for 3rd bit, if not in SC and TC
-            if not ( category & (1 | 1 << 1) ):
-                category |= (1 << 2)
+            category = chinese_variants.detect_chinese_category(phrase)
         try:
             tbks = self.parse(tabkeys)
             if len(tbks) != len(tabkeys):
