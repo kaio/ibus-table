@@ -228,6 +228,15 @@ class editor(object):
                 "ChineseMode"))
         if self._chinese_mode == None:
             self._chinese_mode = self.get_chinese_mode()
+        
+        self._auto_select = variant_to_value(self._config.get_value(
+                self._config_section,
+                "AutoSelect"))
+        if self._auto_select == None:
+            if self.db.get_ime_property('auto_select') != None:
+                self._auto_select = self.db.get_ime_property('auto_select').lower() == u'true'
+            else:
+                self._auto_select = False
 
     def init_select_keys(self):
         # __select_keys: lookup table select keys/labels
@@ -728,7 +737,9 @@ class editor(object):
                             if ascii.ispunct (self._chars[0][-1].encode('ascii')) \
                                     or len (self._chars[0][:-1]) \
                                     in self.db.pkeylens \
-                                    or only_one_last:
+                                    or only_one_last \
+                                    or self._auto_select:
+                                    
                                 # because we use [!@#$%] to denote [12345]
                                 # in py_mode, so we need to distinguish them
                                 ## old manner:
@@ -750,7 +761,7 @@ class editor(object):
                                     self._lookup_table.clear()
                                     self._lookup_table.set_cursor_visible(True)
                                     return False
-                            else:    
+                            else:
                                 # this is not a punct or not a valid phrase
                                 # last time
                                 self._chars[1].append( self._chars[0].pop() )
@@ -1142,11 +1153,22 @@ class tabengine (IBus.Engine):
             self._full_width_punct[1] = self.db.get_ime_property('def_full_width_punct').lower() == u'true'
         # some properties we will involved, Property is taken from scim.
         #self._setup_property = Property ("setup", _("Setup"))
+        
         self._auto_commit = variant_to_value(self._config.get_value(
                 self._config_section,
                 "AutoCommit"))
         if self._auto_commit == None:
             self._auto_commit = self.db.get_ime_property('auto_commit').lower() == u'true'
+        
+        self._auto_select = variant_to_value(self._config.get_value(
+                self._config_section,
+                "AutoSelect"))
+        if self._auto_select == None:
+            if self.db.get_ime_property('auto_select') != None:
+                self._auto_select = self.db.get_ime_property('auto_select').lower() == u'true'
+            else:
+                self._auto_select = False            
+            
         # the commit phrases length
         self._len_list = [0]
         # connect to SpeedMeter
@@ -1287,7 +1309,7 @@ class tabengine (IBus.Engine):
                 self._set_property(self._cmode_property, 'tcb-mode.svg', _('Traditional Chinese First Big Charset Mode'), _('Switch to Big Charset Mode'))
             elif self._editor._chinese_mode == 4:
                 self._set_property(self._cmode_property, 'cb-mode.svg', _('Big Chinese Mode'), _('Switch to Simplified Chinese Mode'))
-        self.update_property(self._cmode_property)
+            self.update_property(self._cmode_property)
 
     def _set_property (self, property, icon, label, tooltip):
         property.set_icon ( u'%s%s' % (self._icon_dir, icon ) )
@@ -1736,7 +1758,10 @@ class tabengine (IBus.Engine):
                 sp_res = self._editor.space ()
                 #return (KeyProcessResult,whethercommit,commitstring)
                 if sp_res[0]:
-                    self.commit_string (sp_res[1])
+                    if self._auto_select:
+                        self.commit_string ("%s " %sp_res[1])
+                    else:
+                        self.commit_string (sp_res[1])
                     #self.add_string_len(sp_res[1])
                     self.db.check_phrase (sp_res[1], sp_res[2])
                 else:

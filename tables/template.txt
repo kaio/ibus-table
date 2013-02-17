@@ -63,6 +63,9 @@ MAX_KEY_LENGTH = 4
 ### Use auto_commit mode as default
 AUTO_COMMIT = FALSE
 
+### Automatically selects the first phrase when typing
+AUTO_SELECT = FALSE
+
 ### Use full width punctuation by default
 DEF_FULL_WIDTH_PUNCT = TRUE
 ### Not use full width letter by default
