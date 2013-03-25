@@ -27,10 +27,13 @@ __all__ = (
 
 import os
 import string
+from common_functions import *
 from gi.repository import IBus
 from gi.repository import GLib
 from curses import ascii
 #import tabsqlitedb
+import itdebug
+import properties
 import tabdict
 import re
 
@@ -40,31 +43,6 @@ patt_uncommit = re.compile (r'(.*)@@@(.*)')
 from gettext import dgettext
 _  = lambda a : dgettext ("ibus-table", a)
 N_ = lambda a : a
-
-def variant_to_value(variant):
-    if type(variant) != GLib.Variant:
-        return variant
-    type_string = variant.get_type_string()
-    if type_string == 's':
-        return variant.get_string()
-    elif type_string == 'i':
-        return variant.get_int32()
-    elif type_string == 'b':
-        return variant.get_boolean()
-    elif type_string == 'as':
-        # In the latest pygobject3 3.3.4 or later, g_variant_dup_strv
-        # returns the allocated strv but in the previous release,
-        # it returned the tuple of (strv, length)
-        if type(GLib.Variant.new_strv([]).dup_strv()) == tuple:
-            return variant.dup_strv()[0]
-        else:
-            return variant.dup_strv()
-    else:
-        print 'error: unknown variant type:', type_string
-    return variant
-
-def argb(a, r, g, b):
-    return ((a & 0xff)<<24) + ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff)
 
 def rgb(r, g, b):
     return argb(255, r, g, b)
@@ -158,7 +136,7 @@ class KeyEvent:
 
 class editor(object):
     '''Hold user inputs chars and preedit string'''
-    def __init__ (self, config, phrase_table_index,valid_input_chars, max_key_length, database, parser = tabdict.parse, deparser = tabdict.deparse, max_length = 64):
+    def __init__ (self, config, phrase_table_index,valid_input_chars, max_key_length, database, properties, parser = tabdict.parse, deparser = tabdict.deparse, max_length = 64):
         self.db = database
         self._config = config
         self._name = self.db.get_ime_property('name')
@@ -169,6 +147,9 @@ class editor(object):
         self._max_key_len = int(max_key_length)
         self._max_length = max_length
         self._valid_input_chars = valid_input_chars
+        
+        self.nproperties=properties
+        
         #
         # below vals will be reset in self.clear()
         #
@@ -193,6 +174,8 @@ class editor(object):
                 "LookupTableOrientation"))
         if __orientation == None:
                 __orientation = self.db.get_orientation()
+        
+        
         # __page_size: lookup table page size
         # this is computed from the select_keys, so should be done after it
         __page_size = self.db.get_page_size()
@@ -205,18 +188,13 @@ class editor(object):
         self._lookup_table.set_orientation (__orientation)
         # self._select_keys: a list of chars for select keys
         self.init_select_keys()
-        # self._py_mode: whether in pinyin mode
-        self._py_mode = False
+        # self._pinyin_mode: whether in pinyin mode
+        self._pinyin_mode = self.nproperties.get_value('pinyin_mode')
         # self._zi: the last Zi commit to preedit
         self._zi = u''
         # self._caret: caret position in lookup_table
         self._caret = 0
-        # self._onechar: whether we only select single character
-        self._onechar = variant_to_value(self._config.get_value(
-                self._config_section,
-                "OneChar"))
-        if self._onechar == None:
-            self_onechar = False
+
         # self._chinese_mode: the candidate filter mode,
         #   0 means to show simplified Chinese only
         #   1 means to show traditional Chinese only
@@ -224,20 +202,17 @@ class editor(object):
         #   3 means to show all characters but show traditional Chinese first
         #   4 means to show all characters
         # we use LC_CTYPE or LANG to determine which one to use
-        self._chinese_mode = variant_to_value(self._config.get_value(
-                self._config_section,
-                "ChineseMode"))
+        #self._chinese_mode = variant_to_value(self._config.get_value(
+        #        self._config_section,
+        #        "ChineseMode"))
+        #if self._chinese_mode == None:
+        #    self._chinese_mode = self.get_chinese_mode()
+        self._chinese_mode = self.nproperties.get_value('chinese_mode')
         if self._chinese_mode == None:
-            self._chinese_mode = self.get_chinese_mode()
-        
-        self._auto_select = variant_to_value(self._config.get_value(
-                self._config_section,
-                "AutoSelect"))
-        if self._auto_select == None:
-            if self.db.get_ime_property('auto_select') != None:
-                self._auto_select = self.db.get_ime_property('auto_select').lower() == u'true'
-            else:
-                self._auto_select = False
+            self._chinese_mode = -1
+
+        self.set_candidates_list_visible(self.nproperties.get_value('always_show_lookup'))
+
 
     def init_select_keys(self):
         # __select_keys: lookup table select keys/labels
@@ -259,43 +234,19 @@ class editor(object):
         """@return: a list of chars as select keys: ["1", "2", ...]"""
         return self._select_keys
 
-    def get_chinese_mode (self):
-        '''Use db value or LC_CTYPE in your box to determine the _chinese_mode'''
-        # use db value, if applicable
-        __db_chinese_mode = self.db.get_chinese_mode()
-        if __db_chinese_mode >= 0:
-            return __db_chinese_mode
-        # otherwise
-        try:
-            if os.environ.has_key('LC_ALL'):
-                __lc = os.environ['LC_ALL'].split('.')[0].lower()
-            elif os.environ.has_key('LC_CTYPE'):
-                __lc = os.environ['LC_CTYPE'].split('.')[0].lower()
-            else:
-                __lc = os.environ['LANG'].split('.')[0].lower()
+    #def change_chinese_mode (self):
+    #    if self._chinese_mode != -1:
+    #        self._chinese_mode = (self._chinese_mode +1 ) % 5
+    #    self._config.set_value (
+    #            self._config_section,
+    #            "chinese_mode",
+    #            GLib.Variant.new_int32(self._chinese_mode))
 
-            if __lc.find('_cn') != -1:
-                return 0
-            # hk and tw is should use tc as default
-            elif __lc.find('_hk') != -1 or __lc.find('_tw') != -1\
-                    or __lc.find('_mo') != -1:
-                return 1
-            else:
-                if self.db._is_chinese:
-                    # if IME declare as Chinese IME
-                    return 0
-                else:
-                    return -1
-        except:
-            return -1
-
-    def change_chinese_mode (self):
-        if self._chinese_mode != -1:
-            self._chinese_mode = (self._chinese_mode +1 ) % 5
-        self._config.set_value (
-                self._config_section,
-                "ChineseMode",
-                GLib.Variant.new_int32(self._chinese_mode))
+    def set_candidates_list_visible(self, visible):
+        if "set_candidates_list_visible" in dir(self._lookup_table):
+            self._lookup_table.set_candidates_list_visible(visible)
+        else:
+            print "Method set_candidates_list_visible not implemented in iBus. Please upgrade.\n"
 
     def clear (self):
         '''Remove data holded'''
@@ -303,7 +254,7 @@ class editor(object):
         self._t_chars = []
         self._strings = []
         self._cursor = [0,0]
-        self._py_mode = False
+        self._pinyin_mode = False
         self._zi = u''
         self.update_candidates
 
@@ -339,15 +290,15 @@ class editor(object):
         self._zi = u''
         if self._cursor[1]:
             self.split_phrase()
-        if (len (self._chars[0]) == self._max_key_len and (not self._py_mode)) or ( len (self._chars[0]) == 7 and self._py_mode ) :
+        if (len (self._chars[0]) == self._max_key_len and (not self._pinyin_mode)) or ( len (self._chars[0]) == 7 and self._pinyin_mode ) :
             self.auto_commit_to_preedit()
             res = self.add_input (c)
             return res
         elif self._chars[1]:
             self._chars[1].append (c)
         else:
-            if (not self._py_mode and ( c in self._valid_input_chars)) or\
-                (self._py_mode and (c in u'abcdefghijklmnopqrstuvwxyz!@#$%')):
+            if (not self._pinyin_mode and ( c in self._valid_input_chars)) or\
+                (self._pinyin_mode and (c in u'abcdefghijklmnopqrstuvwxyz!@#$%')):
                 try:
                     self._tabkey_list += self._parser (c)
                     self._chars[0].append (c)
@@ -478,7 +429,7 @@ class editor(object):
     def get_preedit_strings (self):
         '''Get preedit strings'''
         if self._candidates[0]:
-            if self._py_mode:
+            if self._pinyin_mode:
                 _p_index = 8
             else:
                 _p_index = self.get_index ('phrase')
@@ -512,7 +463,7 @@ class editor(object):
             map (self.add_caret,self._strings[:self._cursor[0]])
         self._caret += self._cursor[1]
         if self._candidates[0]:
-            if self._py_mode:
+            if self._pinyin_mode:
                 _p_index = 8
             else:
                 _p_index = self.get_index ('phrase')
@@ -597,7 +548,7 @@ class editor(object):
             return False
     def ap_candidate (self, candi):
         '''append candidate to lookup_table'''
-        if not self._py_mode:
+        if not self._pinyin_mode:
             _p_index = self.get_index('phrase')
             _fkey = self.get_index('m0')
         else:
@@ -605,7 +556,7 @@ class editor(object):
             _fkey = 1
         if self.db._is_chinese:
             _tbks = u''.join( map(self._deparser , candi[_fkey + len(self._tabkey_list) : _p_index-1 ] ) )
-            if self._py_mode:
+            if self._pinyin_mode:
                 # restore tune symbol
                 _tbks = _tbks.replace('!','↑1').replace('@','↑2').replace('#','↑3').replace('$','↑4').replace('%','↑5')
         else:
@@ -641,7 +592,7 @@ class editor(object):
 
     def filter_candidates (self, candidates):
         '''Filter candidates if IME is Chinese'''
-        #if self.db._is_chinese and (not self._py_mode):
+        #if self.db._is_chinese and (not self._pinyin_mode):
         if not self._chinese_mode in(2,3):
             return candidates[:]
         bm_index = self._pt.index('category')
@@ -683,28 +634,28 @@ class editor(object):
                 if self._tabkey_list:
                     # here we need to consider two parts, table and pinyin
                     # first table
-                    if not self._py_mode:
+                    if not self._pinyin_mode:
                         if self.db._is_chinese :
                             bm_index = self._pt.index('category')
                             if self._chinese_mode == 0:
-                                # simplify Chinese mode
+                                # simplified Chinese mode
                                 self._candidates[0] = self.db.select_words(\
-                                        self._tabkey_list, self._onechar, 1 )
+                                        self._tabkey_list, self.nproperties.get_value('one_char'), 1 )
                             elif self._chinese_mode == 1:
                                 # traditional Chinese mode
                                 self._candidates[0] = self.db.select_words(\
-                                        self._tabkey_list, self._onechar, 2 )
+                                        self._tabkey_list, self.nproperties.get_value('one_char'), 2 )
                             else:
                                 self._candidates[0] = self.db.select_words(\
-                                        self._tabkey_list, self._onechar )
+                                        self._tabkey_list, self.nproperties.get_value('one_char') )
                         else:
-                            self._candidates[0] = self.db.select_words( self._tabkey_list, self._onechar )
+                            self._candidates[0] = self.db.select_words( self._tabkey_list, self.nproperties.get_value('one_char') )
                     else:
                         self._candidates[0] = self.db.select_zi( self._tabkey_list )
                     self._chars[2] = self._chars[0][:]
 
                 else:
-                    self._candidates[0] =[]
+                    self._candidates[0] = []
                 if self._candidates[0]:
                     self._candidates[0] = self.filter_candidates (self._candidates[0])
                 if self._candidates[0]:
@@ -739,12 +690,12 @@ class editor(object):
                                     or len (self._chars[0][:-1]) \
                                     in self.db.pkeylens \
                                     or only_one_last \
-                                    or self._auto_select:
+                                    or self.nproperties.get_value('auto_select'):
                                     
                                 # because we use [!@#$%] to denote [12345]
-                                # in py_mode, so we need to distinguish them
+                                # in pinyin_mode, so we need to distinguish them
                                 ## old manner:
-                                if self._py_mode:
+                                if self._pinyin_mode:
                                     if self._chars[0][-1] in "!@#$%":
                                         self._chars[0].pop() 
                                         self._tabkey_list.pop()
@@ -754,7 +705,7 @@ class editor(object):
                                     # If there are no candidates but there were
                                     # for previous input, we process that case
                                     # in tabengine, (auto-select mode)
-                                    if self._auto_select:
+                                    if self.nproperties.get_value('auto_select'):
                                         res=False
                                     else:
                                         self._candidates[0] = self._candidates[1]
@@ -785,7 +736,7 @@ class editor(object):
 
     def commit_to_preedit (self):
         '''Add select phrase in lookup table to preedit string'''
-        if not self._py_mode:
+        if not self._pinyin_mode:
             _p_index = self.get_index('phrase')
         else:
             _p_index = 8
@@ -793,7 +744,7 @@ class editor(object):
             if self._candidates[0]:
                 self._strings.insert(self._cursor[0], self._candidates[0][ self.get_cursor_pos() ][_p_index])
                 self._cursor [0] += 1
-                if self._py_mode:
+                if self._pinyin_mode:
                     self._zi = self._candidates[0][ self.get_cursor_pos() ][_p_index]
             self.over_input ()
             self.update_candidates ()
@@ -802,7 +753,7 @@ class editor(object):
 
     def auto_commit_to_preedit (self):
         '''Add select phrase in lookup table to preedit string'''
-        if not self._py_mode:
+        if not self._pinyin_mode:
             _p_index = self.get_index('phrase')
         else:
             _p_index = 8
@@ -821,7 +772,7 @@ class editor(object):
         if input_chars:
             #aux_string =  u' '.join( map( u''.join, self._u_chars + [self._chars[0]] ) )
             aux_string =   u''.join (self._chars[0]) 
-            if self._py_mode:
+            if self._pinyin_mode:
                 aux_string = aux_string.replace('!','1').replace('@','2').replace('#','3').replace('$','4').replace('%','5')
             return aux_string
 
@@ -1003,11 +954,11 @@ class editor(object):
             return False
 
     def r_shift (self):
-        '''Proess Right Shift Key Event as changed between PinYin Mode and Table Mode'''
+        '''Process Right Shift Key Event as changed between PinYin Mode and Table Mode'''
         self._zi = u''
         if self._chars[0]:
             self.commit_to_preedit ()
-        self._py_mode = not (self._py_mode)
+        self.nproperties.shift_property_value('pinyin_mode')
         return True
 
     def l_alt(self):
@@ -1052,7 +1003,7 @@ class editor(object):
 ########################
 ### Engine Class #####
 ####################
-class tabengine (IBus.Engine):
+class tabengine (IBus.Engine, itdebug.itdebug):
     '''The IM Engine for Tables'''
 
     # colors
@@ -1063,6 +1014,8 @@ class tabengine (IBus.Engine):
     def __init__ (self, bus, obj_path, db ):
         super(tabengine,self).__init__ (connection=bus.get_connection(),
                                         object_path=obj_path)
+        
+        
         self._bus = bus
         # this is the backend sql db we need for our IME
         # we receive this db from IMEngineFactory
@@ -1073,21 +1026,119 @@ class tabengine (IBus.Engine):
 
         self._icon_dir = '%s%s%s%s' % (os.getenv('IBUS_TABLE_LOCATION'),
                 os.path.sep, 'icons', os.path.sep)
-        # 0 = english input mode
-        # 1 = table input mode
-        self._mode = 1
-        # self._ime_py: True / False this IME support pinyin mode
-        self._ime_py = self.db.get_ime_property ('pinyin_mode')
-        if self._ime_py:
-            if self._ime_py.lower() == u'true':
-                self._ime_py = True
-            else:
-                self._ime_py = False
-        else:
-            print 'We could not find "pinyin_mode" entry in database, is it an outdated database?'
-            self._ime_py = False
+        _table_properties = {
+            'always_show_lookup': {
+                'label': [
+                    'Hidden candidates list',
+                    'Visible candidates list'
+                ],
+                'tooltip': ['Show a list of possible candidates.','Hide the candidates list.'],
+                'value': True,
+                'user-configurable': True,
+                'engine-mode': True,
+                'engine-mode-dependant': False,
+                'menu-index': 10
+            },
+            'auto_commit': {
+                'label': [
+                    'Direct commit',
+                    'Normal commit'
+                ],
+                'tooltip': [
+                    'Switch to normal commit mode, which wants you to press the space key to commit',
+                    'Switch to direct commit mode'
+                ],
+                'value': False,
+                'user-configurable': True,
+                'engine-mode-dependant': False,
+                'engine-mode': True,
+                'menu-index': 7
+            },
+            'auto_select': {
+                'label': [
+                    'Manually select candidates',
+                    'Auto-select candidates'
+                ],
+                'tooltip': [
+                    'Switch to auto select mode, which automatically selects the first candidate if no other candidate matches the newly pressed key',
+                    'Switch to normal select mode, which requires you to choose a candidate among a list'
+                ],
+                'value': False,
+                'user-configurable': True,
+                'engine-mode': True,
+                'engine-mode-dependant': False,
+                'menu-index': 8
+            },
+            'chinese_mode': {
+                'label': [
+                    'Simplified Chinese mode',
+                    'Traditional Chinese mode',
+                    'Simplified Chinese First Big Charset Mode',
+                    'Traditional Chinese First Big Charset Mode',
+                    'Big Chinese Mode'
+                ],
+                'tooltip': [
+                    'Switch to Traditional Chinese mode',
+                    'Switch to Simplified Chinese first Big Charset Mode',
+                    'Switch to Traditional Chinese first Big Charset Mode',
+                    'Switch to Big Charset Mode',
+                    'Switch to Simplified Chinese Mode'
+                ],
+                'value': self.get_chinese_mode(),
+                'user-configurable': self.db.is_chinese(),
+                'engine-mode': True,
+                'engine-mode-dependant': False,
+                'menu-index': 1
+            },
+            'full_width_letter': {
+                'label': ['Half-width letters','Full-width letters'],
+                'tooltip': ['Use half-width letters','Use half-width letters'],
+                'value': False,
+                'user-configurable': self.db.is_chinese(),
+                'engine-mode-dependant': True,
+                'menu-index': 5
+            },
+            'full_width_punct': {
+                'label': ['Half-width punctuation','Full-width punctuation'],
+                'tooltip': ['Use full-width punctuation','Use half-width punctuation'],
+                'value': False,
+                'user-configurable': self.db.is_chinese(),
+                'engine-mode-dependant': True,
+                'menu-index': 6
+            },
+            'one_char': {
+                'label': [
+                    'Single Char Mode',
+                    'Phrase mode'
+                ],
+                'tooltip': [
+                    'Switch to phrase mode',
+                    'Switch to single char mode'
+                ],
+                'value': False,
+                'user-configurable': self.db.is_chinese(),
+                'engine-mode': True,
+                'engine-mode-dependant': False,
+                'menu-index': 4
+            },
+            'pinyin_mode': {
+                'label': [
+                    'Pinyin Mode',
+                    'Table mode'
+                ],
+                'tooltip': [
+                    'Switch to table mode',
+                    'Switch to PinYin mode'
+                ],
+                'value': False,
+                'user-configurable': self.db.is_chinese(),
+                'engine-mode': True,
+                'engine-mode-dependant': False,
+                'menu-index': 3
+            },                
+        }
 
-        self._status = self.db.get_ime_property('status_prompt').encode('utf8')
+        self._status = self.db.get_ime_property('status_prompt')
         # now we check and update the valid input characters
         self._chars = self.db.get_ime_property('valid_input_chars')
         self._valid_input_chars = []
@@ -1119,63 +1170,24 @@ class tabengine (IBus.Engine):
         # name for config section
         self._name = self.db.get_ime_property('name')
         self._config_section = "engine/Table/%s" % self._name.replace(' ', '_')
-
-        # config module
         self._config = self._bus.get_config ()
-        self._config.connect ("value-changed", self.config_value_changed_cb)
-        # Containers we used:
-        self._editor = editor(self._config, self._pt, self._valid_input_chars, self._ml, self.db)
-
+        #self._config.connect ("value-changed", self.config_value_changed_cb)
+        
+        # config module
+        
         # some other vals we used:
         # self._prev_key: hold the key event last time.
         self._prev_key = None
         self._prev_char = None
+
         self._double_quotation_state = False
         self._single_quotation_state = False
 
-        # [EnMode,TabMode] we get TabMode properties from db
-        self._full_width_letter = [
-            variant_to_value(self._config.get_value(
-                    self._config_section,
-                    "EnDefFullWidthLetter")),
-            variant_to_value(self._config.get_value(
-                    self._config_section,
-                    "TabDefFullWidthLetter"))
-            ]
-        if self._full_width_letter[0] == None:
-            self._full_width_letter[0] = False
-        if self._full_width_letter[1] == None:
-            self._full_width_letter[1] = self.db.get_ime_property('def_full_width_letter').lower() == u'true'
-        self._full_width_punct = [
-            variant_to_value(self._config.get_value(
-                    self._config_section,
-                    "EnDefFullWidthPunct")),
-            variant_to_value(self._config.get_value(
-                    self._config_section,
-                    "TabDefFullWidthPunct"))
-            ]
-        if self._full_width_punct[0] == None:
-            self._full_width_punct[0] = False
-        if self._full_width_punct[1] == None:
-            self._full_width_punct[1] = self.db.get_ime_property('def_full_width_punct').lower() == u'true'
-        # some properties we will involved, Property is taken from scim.
-        #self._setup_property = Property ("setup", _("Setup"))
+        self.nproperties=properties.properties(self._bus, obj_path, db, _table_properties)
         
-        self._auto_commit = variant_to_value(self._config.get_value(
-                self._config_section,
-                "AutoCommit"))
-        if self._auto_commit == None:
-            self._auto_commit = self.db.get_ime_property('auto_commit').lower() == u'true'
-        
-        self._auto_select = variant_to_value(self._config.get_value(
-                self._config_section,
-                "AutoSelect"))
-        if self._auto_select == None:
-            if self.db.get_ime_property('auto_select') != None:
-                self._auto_select = self.db.get_ime_property('auto_select').lower() == u'true'
-            else:
-                self._auto_select = False
-        
+        # self._ime_py: True / False this IME support pinyin mode
+        self._ime_py = self.nproperties.get_value('pinyin_mode')
+
         # the commit phrases length
         self._len_list = [0]
         # connect to SpeedMeter
@@ -1189,6 +1201,9 @@ class tabengine (IBus.Engine):
         #except:
         #    self._sm = None
         #self._sm_on = False
+
+        # Containers we used:
+        self._editor = editor(self._config, self._pt, self._valid_input_chars, self._ml, self.db, self.nproperties)
         self._on = False
         self.reset ()
 
@@ -1198,7 +1213,8 @@ class tabengine (IBus.Engine):
         self._single_quotation_state = False
         self._prev_key = None
         #self._editor._onechar = False    
-        self._init_properties ()
+        #self._init_properties ()
+        self.nproperties.init_ime_properties()
         self._update_ui ()
 
     def do_destroy(self):
@@ -1207,200 +1223,21 @@ class tabengine (IBus.Engine):
         #self.db.sync_usrdb ()
         super(tabengine,self).destroy()
 
-    def _init_properties (self):
-        self.properties= IBus.PropList ()
-        self._status_property = IBus.Property(key=u'status',
-                                              label=None,
-                                              icon=None,
-                                              tooltip=None,
-                                              sensitive=True,
-                                              visible=True)
-        self.properties.append(self._status_property)
-        if self.db._is_chinese:
-            self._cmode_property = IBus.Property(key=u'cmode',
-                                                 label=None,
-                                                 icon=None,
-                                                 tooltip=None,
-                                                 sensitive=True,
-                                                 visible=True)
-            self.properties.append(self._cmode_property)
-        self._letter_property = IBus.Property(key=u'letter',
-                                              label=None,
-                                              icon=None,
-                                              tooltip=None,
-                                              sensitive=True,
-                                              visible=True)
-        self.properties.append(self._letter_property)
-        self._punct_property = IBus.Property(key=u'punct',
-                                              label=None,
-                                              icon=None,
-                                              tooltip=None,
-                                             sensitive=True,
-                                             visible=True)
-        self.properties.append(self._punct_property)
-        self._py_property = IBus.Property(key=u'py_mode',
-                                          label=None,
-                                          icon=None,
-                                          tooltip=None,
-                                          sensitive=True,
-                                          visible=True)
-        self.properties.append(self._py_property)
-        self._onechar_property = IBus.Property(key=u'onechar',
-                                               label=None,
-                                               icon=None,
-                                               tooltip=None,
-                                               sensitive=True,
-                                               visible=True)
-        self.properties.append(self._onechar_property)
-        self._auto_commit_property = IBus.Property(key=u'acommit',
-                                                   label=None,
-                                                   icon=None,
-                                                   tooltip=None,
-                                                   sensitive=True,
-                                                   visible=True)
-        self.properties.append(self._auto_commit_property)
-        self._auto_select_property = IBus.Property(key=u'aselect',
-                                                   label=None,
-                                                   icon=None,
-                                                   tooltip=None,
-                                                   sensitive=True,
-                                                   visible=True)
-        self.properties.append(self._auto_select_property)
-        self.register_properties (self.properties)
-        self._refresh_properties ()
+    
 
     def _refresh_properties (self):
         '''Method used to update properties'''
-        # taken and modified from PinYin.py :)
-        if self._mode == 1: # refresh mode
-            if self._status == u'CN':
-                self._set_property(self._status_property, 'chinese.svg', _('Chinese Mode'), _('Switch to English mode'))
-            else:
-                self._set_property(self._status_property, 'ibus-table.svg', self._status, _('Switch to English mode'))
-        else:
-            self._set_property(self._status_property, 'english.svg', _('English Mode'), _('Switch to Table mode'))
-        self.update_property(self._status_property)
+        self.nproperties.init_ime_properties()
+        self._editor._pinyin_mode = self.nproperties.get_value('pinyin_mode')
 
-        if self._full_width_letter[self._mode]:
-            self._set_property(self._letter_property, 'full-letter.svg', _('Full Letter'), _('Switch to half-width letter'))
-        else:
-            self._set_property(self._letter_property, 'half-letter.svg', _('Half Letter'), _('Switch to full-width letter'))
-        self.update_property(self._letter_property)
+    def _pass(self):
+        pass
+    
 
-        if self._full_width_punct[self._mode]:
-            self._set_property(self._punct_property, 'full-punct.svg', _('Full-width Punctuation'), _('Switch to half-width punctuation'))
-        else:
-            self._set_property(self._punct_property, 'half-punct.svg', _('Half-width Punctuation'), _('Switch to full-width punctuation'))
-        self.update_property(self._punct_property)
-
-        if self._editor._py_mode:
-            self._set_property(self._py_property, 'py-mode.svg', _('PinYin Mode'), _('Switch to Table mode'))
-        else:
-            self._set_property(self._py_property, 'tab-mode.svg', _('Table Mode'), _('Switch to PinYin mode'))
-        self.update_property(self._py_property)
-
-        if self._editor._onechar:
-            self._set_property(self._onechar_property, 'onechar.svg', _('Single Char Mode'), _('Switch to phrase mode'))
-        else:
-            self._set_property(self._onechar_property, 'phrase.svg', _('Phrase Mode'), _('Switch to single char mode'))
-        self.update_property(self._onechar_property)
-
-        if self._auto_commit:
-            self._set_property(self._auto_commit_property, 'acommit.svg', _('Direct Commit Mode'), _('Switch to normal commit mode, which use space to commit')) 
-        else:
-            self._set_property(self._auto_commit_property, 'ncommit.svg', _('Normal Commit Mode'), _('Switch to direct commit mode'))
-        self.update_property(self._auto_commit_property)
-
-        if self._auto_select:
-            self._set_property(self._auto_select_property, 'aselect.svg', _('Auto Select Mode'), _('Switch to normal select mode, which needs you to choose a candidate'))
-        else:
-            self._set_property(self._auto_select_property, 'nselect.svg', _('Normal Select Mode'), _('Switch to auto sеlect mode, which automatically selects the first candidate if no other candidate matches the newly pressed key'))
-        self.update_property(self._auto_select_property)
-
-        # the chinese_mode:
-        if self.db._is_chinese:
-            if self._editor._chinese_mode == 0:
-                self._set_property(self._cmode_property, 'sc-mode.svg', _('Simplified Chinese Mode'), _('Switch to Traditional Chinese mode'))
-            elif self._editor._chinese_mode == 1:
-                self._set_property(self._cmode_property, 'tc-mode.svg', _('Traditional Chinese Mode'), _('Switch to Simplify Chinese first Big Charset Mode'))
-            elif self._editor._chinese_mode == 2:
-                self._set_property(self._cmode_property, 'scb-mode.svg', _('Simplified Chinese First Big Charset Mode'), _('Switch to Traditional Chinese first Big Charset Mode'))
-            elif self._editor._chinese_mode == 3:
-                self._set_property(self._cmode_property, 'tcb-mode.svg', _('Traditional Chinese First Big Charset Mode'), _('Switch to Big Charset Mode'))
-            elif self._editor._chinese_mode == 4:
-                self._set_property(self._cmode_property, 'cb-mode.svg', _('Big Chinese Mode'), _('Switch to Simplified Chinese Mode'))
-            self.update_property(self._cmode_property)
-
-    def _set_property (self, property, icon, label, tooltip):
-        property.set_icon ( u'%s%s' % (self._icon_dir, icon ) )
-        property.set_label (IBus.Text.new_from_string(unicode(label)))
-        property.set_tooltip (IBus.Text.new_from_string(unicode(tooltip)))
-
-    def _change_mode (self):
-        '''Shift input mode, TAB -> EN -> TAB
-        '''
-        self._mode = int (not self._mode)
-        self.reset ()
-        self._update_ui ()
 
     def do_property_activate (self, property, prop_state = IBus.PropState.UNCHECKED):
         '''Shift property'''
-        if property == u"status":
-            self._change_mode ()
-
-        elif property == u'py_mode' and self._ime_py:
-            self._editor.r_shift ()
-
-        elif property == u'onechar':
-            self._editor._onechar = not self._editor._onechar
-            self._config.set_value(self._config_section,
-                    "OneChar",
-                    GLib.Variant.new_boolean(self._editor._onechar))
-
-        elif property == u'acommit':
-            self._auto_commit = not self._auto_commit
-            self._config.set_value( self._config_section,
-                    "AutoCommit",
-                    GLib.Variant.new_boolean(self._auto_commit))
-
-        elif property == u'aselect':
-            self._auto_select = not self._auto_select
-            self._editor._auto_select =  not self._editor._auto_select
-            self._config.set_value( self._config_section,
-                    "AutoSelect",
-                    GLib.Variant.new_boolean(self._auto_select))
-
-        elif property == u'letter':
-            self._full_width_letter [self._mode] = not self._full_width_letter [self._mode]
-            if self._mode:
-                self._config.set_value(self._config_section,
-                        "TabDefFullWidthLetter",
-                        GLib.Variant.new_boolean(self._full_width_letter [self._mode]))
-            else:
-                self._config.set_value(self._config_section,
-                        "EnDefFullWidthLetter",
-                        GLib.Variant.new_boolean(self._full_width_letter [self._mode]))
-
-        elif property == u'punct':
-            self._full_width_punct [self._mode] = not self._full_width_punct [self._mode]
-            if self._mode:
-                self._config.set_value(self._config_section,
-                        "TabDefFullWidthPunct",
-                        GLib.Variant.new_boolean(self._full_width_punct [self._mode]))
-            else:
-                self._config.set_value(self._config_section,
-                        "EnDefFullWidthPunct",
-                        GLib.Variant.new_boolean(self._full_width_punct [self._mode]))
-
-        elif property == u'cmode':
-            self._editor.change_chinese_mode()
-            self.reset()
-
-        self._refresh_properties ()
-    #    elif property == "setup":
-            # Need implementation
-    #        self.start_helper ("96c07b6f-0c3d-4403-ab57-908dd9b8d513")
-        # at last invoke default method 
+        self.nproperties.shift_property_value(property)
 
     def _update_preedit (self):
         '''Update Preedit String in UI'''
@@ -1522,22 +1359,22 @@ class tabengine (IBus.Engine):
                 else:
                     return u"\u2019"
             elif c == u"<":
-                if self._mode:
+                if self.nproperties.get_value('engine-mode'):
                     return u"\u300a"
             elif c == u">":
-                if self._mode:
+                if self.nproperties.get_value('engine-mode'):
                     return u"\u300b"
             elif c == u"[":
-                if self._mode:
+                if self.nproperties.get_value('engine-mode'):
                     return u"\u300c"
             elif c == u"]":
-                if self._mode:
+                if self.nproperties.get_value('engine-mode'):
                     return u"\u300d"
             elif c == u"{":
-                if self._mode:
+                if self.nproperties.get_value('engine-mode'):
                     return u"\u300e"
             elif c == u"}":
-                if self._mode:
+                if self.nproperties.get_value('engine-mode'):
                     return u"\u300f"
             
         return unichar_half_to_full (c)
@@ -1569,17 +1406,19 @@ class tabengine (IBus.Engine):
         '''Internal method to process key event'''
         # Match mode switch hotkey
         if not self._editor._t_chars and ( self._match_hotkey (key, IBus.KEY_Shift_L, IBus.ModifierType.SHIFT_MASK | IBus.ModifierType.RELEASE_MASK)):
-            self._change_mode ()
+            #self._change_mode ()
+            self.nproperties.shift_property_value('engine-mode')
+            self.reset()
             return True
 
         # Match full half letter mode switch hotkey
         if self._match_hotkey (key, IBus.KEY_space, IBus.ModifierType.SHIFT_MASK):
-            self.do_property_activate ("letter")
+           # self.nproperties.shift_property_value('full_width_letter')
             return True
 
         # Match full half punct mode switch hotkey
         if self._match_hotkey (key, IBus.KEY_period, IBus.ModifierType.CONTROL_MASK):
-            self.do_property_activate ("punct")
+           # self.nproperties.shift_property_value('full_width_punct')
             return True
 
         # we ignore all hotkeys
@@ -1590,7 +1429,7 @@ class tabengine (IBus.Engine):
 #        if key.mask & IBus.ModifierType.RELEASE_MASK:
 #            return True
 
-        if self._mode:
+        if self.nproperties.get_value('engine-mode'):
             return self._table_mode_process_key_event (key)
         else:
             return self._english_mode_process_key_event (key)
@@ -1609,7 +1448,7 @@ class tabengine (IBus.Engine):
 
         keychar = unichr (key.code)
         if ascii.ispunct (key.code): # if key code is a punctation
-            if self._full_width_punct[self._mode]:
+            if self.nproperties.get_value('full_width_punct'):
                 self.commit_string (self._convert_to_full_width (keychar))
                 return True
             else:
@@ -1617,7 +1456,7 @@ class tabengine (IBus.Engine):
                 return True
 
         # then, the key code is a letter or digit
-        if self._full_width_letter[self._mode]:
+        if self.nproperties.get_value('full_width_letter'):
             # in full width letter mode
             self.commit_string (self._convert_to_full_width (keychar))
             return True
@@ -1630,9 +1469,9 @@ class tabengine (IBus.Engine):
     def _table_mode_process_key_event (self, key):
         '''Xingma Mode Process Key Event'''
         cond_letter_translate = lambda (c): \
-            self._convert_to_full_width (c) if self._full_width_letter [self._mode] else c
+            self._convert_to_full_width (c) if self.nproperties.get_value('full_width_letter') else c
         cond_punct_translate = lambda (c): \
-            self._convert_to_full_width (c) if self._full_width_punct [self._mode] else c
+            self._convert_to_full_width (c) if self.nproperties.get_value('full_width_punct') else c
 
         # We have to process the pinyin mode change key event here,
         # because we ignore all Release event below.
@@ -1655,16 +1494,16 @@ class tabengine (IBus.Engine):
 
         # Match single char mode switch hotkey
         if self._match_hotkey (key, IBus.KEY_comma, IBus.ModifierType.CONTROL_MASK):
-            self.do_property_activate ( u"onechar" )
+            self.do_property_activate ( u"one_char" )
             return True
         # Match direct commit mode switch hotkey
         if self._match_hotkey (key, IBus.KEY_slash, IBus.ModifierType.CONTROL_MASK):
-            self.do_property_activate ( u"acommit" )
+            self.do_property_activate ( u"auto_commit" )
             return True
 
         # Match Chinese mode shift
         if self._match_hotkey (key, IBus.KEY_semicolon, IBus.ModifierType.CONTROL_MASK):
-            self.do_property_activate ( u"cmode" )
+            self.do_property_activate ( u"chinese_mode" )
             return True
 
         # Match speedmeter shift
@@ -1689,7 +1528,7 @@ class tabengine (IBus.Engine):
                 if key.code == IBus.KEY_space:
                     #self.commit_string (cond_letter_translate (keychar))
                     # little hack to make ibus to input space in gvim :)
-                    if self._full_width_letter [self._mode]:
+                    if self.nproperties.get_value('full_width_letter'):
                         self.commit_string (cond_letter_translate (keychar))
                         return True
                     else: 
@@ -1701,7 +1540,7 @@ class tabengine (IBus.Engine):
                     self.commit_string (cond_letter_translate (keychar))
                     return True
             elif (key.code < 32 or key.code > 127) and ( keychar not in self._valid_input_chars ) \
-                    and(not self._editor._py_mode):
+                    and(not self._editor._pinyin_mode):
                 return False
 
         if key.code == IBus.KEY_Escape:
@@ -1710,15 +1549,17 @@ class tabengine (IBus.Engine):
             return True
 
         elif key.code in (IBus.KEY_Return, IBus.KEY_KP_Enter):
-            if self._auto_select:
+            if self.nproperties.get_value('auto_select'):
                 self._editor.commit_to_preedit ()
-                commit_string = self._editor.get_preedit_strings () + os.linesep
+                commit_string = self._editor.get_preedit_strings () # + os.linesep
             else:
+                #self._editor.commit_to_preedit ()
+                #commit_string = self._editor.get_preedit_strings ()
                 commit_string = self._editor.get_all_input_strings ()    
             self.commit_string (commit_string)
             return True
 
-        elif key.code in (IBus.KEY_Tab, IBus.KEY_KP_Tab) and self._auto_select:
+        elif key.code in (IBus.KEY_Tab, IBus.KEY_KP_Tab) and self.nproperties.get_value('auto_select'):
             self._editor.commit_to_preedit ()
             self.commit_string (self._editor.get_preedit_strings ())
 
@@ -1794,11 +1635,11 @@ class tabengine (IBus.Engine):
                 self._update_ui ()
                 return res
             else:
-                o_py = self._editor._py_mode
+                o_py = self._editor._pinyin_mode
                 sp_res = self._editor.space ()
                 #return (KeyProcessResult,whethercommit,commitstring)
                 if sp_res[0]:
-                    if self._auto_select:
+                    if self.nproperties.get_value('auto_select'):
                         self.commit_string ("%s " %sp_res[1])
                     else:
                         self.commit_string (sp_res[1])
@@ -1807,7 +1648,7 @@ class tabengine (IBus.Engine):
                 else:
                     if sp_res[1] == u' ':
                         self.commit_string (cond_letter_translate (u" "))
-                if o_py != self._editor._py_mode:
+                if o_py != self._editor._pinyin_mode:
                     self._refresh_properties ()
                     self._update_ui ()
                 return True
@@ -1819,11 +1660,11 @@ class tabengine (IBus.Engine):
             return False
 
         elif keychar in self._valid_input_chars or \
-                ( self._editor._py_mode and \
+                ( self._editor._pinyin_mode and \
                     keychar in u'abcdefghijklmnopqrstuvwxyz!@#$%' ):
-            if self._auto_commit and ( len(self._editor._chars[0]) == self._ml \
+            if self.nproperties.get_value('auto_commit') and ( len(self._editor._chars[0]) == self._ml \
                     or len (self._editor._chars[0]) in self.db.pkeylens )\
-                    and not self._editor._py_mode:
+                    and not self._editor._pinyin_mode:
                 # it is time to direct commit
                 sp_res = self._editor.space ()
                 #return (whethercommit,commitstring)
@@ -1838,7 +1679,7 @@ class tabengine (IBus.Engine):
                 # we remove the last input, commit the previous candidate
                 # and reprocess the last input (auto-select mode)
                 reprocess_last_key=False
-                if self._auto_select and self._editor._candidates[1]:
+                if self.nproperties.get_value('auto_select') and self._editor._candidates[1]:
                     self._editor.pop_input ()
                     reprocess_last_key=True
                     key_char=''
@@ -1857,7 +1698,7 @@ class tabengine (IBus.Engine):
                     self._table_mode_process_key_event(key)
                 return True
             else:
-                if self._auto_commit and self._editor.one_candidate () and \
+                if self.nproperties.get_value('auto_commit') and self._editor.one_candidate () and \
                         (len(self._editor._chars[0]) == self._ml \
                             or not self.db._is_chinese):
                     # it is time to direct commit
@@ -1887,11 +1728,11 @@ class tabengine (IBus.Engine):
             input_keys = self._editor.get_all_input_strings ()
             res = self._editor.select_key (keychar)
             if res:
-                o_py = self._editor._py_mode
+                o_py = self._editor._pinyin_mode
                 commit_string = self._editor.get_preedit_strings ()
                 self.commit_string (commit_string)
                 #self.add_string_len(commit_string)
-                if o_py != self._editor._py_mode:
+                if o_py != self._editor._pinyin_mode:
                     self._refresh_properties ()
                     self._update_ui ()
                 # modify freq info
@@ -1904,23 +1745,23 @@ class tabengine (IBus.Engine):
             else:
                 self._editor.commit_to_preedit ()
                 commit_string = self._editor.get_preedit_strings ()
-            # we need to take care of the py_mode here :)
-            py_mode = self._editor._py_mode
+            # we need to take care of the pinyin_mode here :)
+            pinyin_mode = self._editor._pinyin_mode
             self._editor.clear ()
-            if py_mode:
+            if pinyin_mode:
                 self._refresh_properties ()
             if ascii.ispunct (key.code):
                 self.commit_string ( commit_string + cond_punct_translate(keychar))
             else:
                 self.commit_string ( commit_string + cond_letter_translate(keychar))
-
+            
             return True
         return False
 
     # below for initial test
     def do_focus_in (self):
         if self._on:
-            self.register_properties (self.properties)
+#            self.register_properties (self.properties)
             self._refresh_properties ()
             self._update_ui ()
             #try:
@@ -1945,6 +1786,7 @@ class tabengine (IBus.Engine):
         #    pass
         self._on = True
         self.do_focus_in()
+            
 
     def do_disable (self):
         self.reset()
@@ -1963,8 +1805,8 @@ class tabengine (IBus.Engine):
 
     def do_page_down (self):
         if self._editor.page_down ():
-            self._update_ui ()
-            return True
+           self._update_ui ()
+           return True
         return False
 
     def config_section_normalize(self, section):
@@ -1976,65 +1818,41 @@ class tabengine (IBus.Engine):
         # effect of comparing the dconf sections case insentively
         # in some locales, it would fail for example if Turkish
         # locale (tr_TR.UTF-8) is set.
+        self.definfo(section)
         if type(section) == type(u''):
             # translate() does not work in Python’s internal Unicode type
             section = section.encode('utf-8')
         return re.sub(r'[_:]', r'-', section).translate(
             string.maketrans(string.ascii_uppercase, string.ascii_lowercase ))
+ 
 
-    def config_value_changed_cb (self, config, section, name, value):
-        if self.config_section_normalize(self._config_section) != self.config_section_normalize(section):
-            return
-        print "config value %(n)s for engine %(en)s changed" %{'n': name, 'en': self._name}
-        value = variant_to_value(value)
-        if name == u'autocommit':
-            self._auto_commit = value
-            self._refresh_properties()
-            return
-        elif name == u'autoselect':
-            self._auto_select = value
-            self._refresh_properties()
-            return
-        elif name == u'chinesemode':
-            self._editor._chinese_mode = value
-            self._refresh_properties()
-            return
-        elif name == u'endeffullwidthletter':
-            self._full_width_letter[0] = value
-            self._refresh_properties()
-            return
-        elif name == u'endeffullwidthpunct':
-            self._full_width_punct[0] = value
-            self._refresh_properties()
-            return
-        elif name == u'lookuptableorientation':
-            self._editor._lookup_table.set_orientation (value)
-            return
-        elif name == u'lookuptableselectkeys':
-            self._editor.set_select_keys (value)
-            return
-        elif name == u'onechar':
-            self._editor._onechar = value
-            self._refresh_properties()
-            return
-        elif name == u'tabdeffullwidthletter':
-            self._full_width_letter[1] = value
-            self._refresh_properties()
-            return
-        elif name == u'tabdeffullwidthpunct':
-            self._full_width_punct[1] = value
-            self._refresh_properties()
-            return
+    def get_chinese_mode (self):
+        '''Use db value or LC_CTYPE in your box to determine the _chinese_mode'''
+        # use db value, if applicable
+        __db_chinese_mode = self.db.get_chinese_mode()
+        if __db_chinese_mode >= 0:
+            return __db_chinese_mode
+        # otherwise
+        try:
+            if os.environ.has_key('LC_ALL'):
+                __lc = os.environ['LC_ALL'].split('.')[0].lower()
+            elif os.environ.has_key('LC_CTYPE'):
+                __lc = os.environ['LC_CTYPE'].split('.')[0].lower()
+            else:
+                __lc = os.environ['LANG'].split('.')[0].lower()
 
-    # for further implementation :)
-    @classmethod
-    def CONFIG_VALUE_CHANGED(cls, bus, section, name, value):
-        config = bus.get_config()
-        if section != self._config_section:
-            return
+            if __lc.find('_cn') != -1:
+                return 0
+            # hk and tw is should use tc as default
+            elif __lc.find('_hk') != -1 or __lc.find('_tw') != -1\
+                    or __lc.find('_mo') != -1:
+                return 1
+            else:
+                if self.db._is_chinese:
+                    # if IME declare as Chinese IME
+                    return 0
+                else:
+                    return -1
+        except:
+            return -1
 
-    @classmethod
-    def CONFIG_RELOADED(cls, bus):
-        config = bus.get_config()
-        if section != self._config_section:
-            return

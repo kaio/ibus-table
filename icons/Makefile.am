@@ -23,26 +23,28 @@ SUBDIRS = \
 	$(NULL)
 
 icons_DATA = \
+	ibus-keyboard.svg \
 	ibus-table.svg \
-	full-letter.svg \
-	half-letter.svg \
-	full-punct.svg \
-	half-punct.svg \
-	tab-mode.svg \
-	py-mode.svg \
-	onechar.svg \
-	phrase.svg \
+	full_width_letter_0.svg \
+	full_width_letter_1.svg \
+	full_width_punct_1.svg \
+	full_width_punct_0.svg \
+	pinyin_mode_1.svg \
+	pinyin_mode_0.svg \
+	one_char_1.svg \
+	one_char_0.svg \
 	chinese.svg \
-	english.svg \
-	acommit.svg \
-	ncommit.svg \
-	aselect.svg \
-	nselect.svg \
-	cb-mode.svg \
-	sc-mode.svg \
-	tc-mode.svg \
-	scb-mode.svg \
-	tcb-mode.svg \
+	auto_commit_1.svg \
+	auto_commit_0.svg \
+	auto_select_1.svg \
+	auto_select_0.svg \
+	always_show_lookup_1.svg \
+	always_show_lookup_0.svg \
+	chinese_mode_0.svg \
+	chinese_mode_1.svg \
+	chinese_mode_2.svg \
+	chinese_mode_3.svg \
+	chinese_mode_4.svg \
 	$(NULL)
 
 iconsdir = $(pkgdatadir)/icons

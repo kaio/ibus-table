@@ -94,13 +94,12 @@ class tabsqlitedb:
                       'page_up_keys':'Page_Up,minus',
                       'page_down_keys':'Page_Down,equal',
                       'status_prompt':'',
-                      'def_full_width_punct':'TRUE',
-                      'def_full_width_letter':'FALSE',
+                      #'usr_full_width_punct':'TRUE',
+                      #'def_full_width_punct':'TRUE',
+                      #'usr_full_width_letter':'TRUE',
+                      #'def_full_width_letter':'FALSE',
                       'user_can_define_phrase':'FALSE',
-                      'pinyin_mode':'FALSE',
                       'dynamic_adjust':'FALSE',
-                      'auto_select':'false',
-                      'auto_commit':'false',
                       #'no_check_chars':u'',
                       'description':'A IME under IBus Table',
                       'layout':'us',
@@ -108,10 +107,39 @@ class tabsqlitedb:
                       #'rules':'ce2:p11+p12+p21+p22;ce3:p11+p21+p22+p31;ca4:p11+p21+p31+p41'}
                       'least_commit_length':'0',
                       'start_chars':'',
-                      'orientation':'1'
-                      # we use this entry for those IME, which don't
+                      'orientation':'1',
+                       # we use this entry for those IME, which don't
                       # have rules to build up phrase, but still need
                       # auto commit to preedit
+
+                      ### Configurable Properties
+                      # Visible in menu ?
+                      'usr_always_show_lookup':'TRUE',
+                      'usr_auto_commit':'FALSE',
+                      'usr_auto_select':'FALSE',
+                      'usr_chinese_mode':'NONE',
+                      'usr_full_width_letter':'NONE',
+                      'usr_full_width_punct':'NONE',
+                      'usr_one_char':'FALSE',
+                      'usr_pinyin_mode':'NONE',
+                      # Default values
+                      'def_always_show_lookup':'TRUE',
+                      'def_auto_commit':'FALSE',
+                      'def_auto_select':'FALSE',
+                      'def_full_width_letter':'NONE',
+                      'def_full_width_punct':'NONE',
+                      'def_chinese_mode':0,
+                      'def_one_char':'NONE',
+                      'def_pinyin_mode':'NONE',
+                      ### Backward compatibility
+                      'auto_commit':'FALSE',
+                      'auto_select':'FALSE',
+                      'chinese_mode': 0,
+                      'full_width_letter':'TRUE',
+                      'full_width_punct':'TRUE',
+                      'one_char':'FALSE',
+                      'pinyin_mode':'FALSE'
+                      ### 
                       }
             # inital the attribute in ime table, which should be updated from mabiao
             for _name in ime_keys:

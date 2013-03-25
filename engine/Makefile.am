@@ -21,8 +21,11 @@
 
 engine_table_PYTHON = \
 	chinese_variants.py \
+	common_functions.py \
 	factory.py \
+	itdebug.py \
 	main.py \
+	properties.py \
 	table.py \
 	tabcreatedb.py \
 	tabdict.py \
