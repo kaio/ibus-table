@@ -1710,7 +1710,11 @@ class tabengine (IBus.Engine):
             return True
 
         elif key.code in (IBus.KEY_Return, IBus.KEY_KP_Enter):
-            commit_string = self._editor.get_all_input_strings ()
+            if self._auto_select:
+                self._editor.commit_to_preedit ()
+                commit_string = self._editor.get_preedit_strings () + os.linesep
+            else:
+                commit_string = self._editor.get_all_input_strings ()    
             self.commit_string (commit_string)
             return True
 
