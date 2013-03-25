@@ -1714,6 +1714,10 @@ class tabengine (IBus.Engine):
             self.commit_string (commit_string)
             return True
 
+        elif key.code in (IBus.KEY_Tab, IBus.KEY_KP_Tab) and self._auto_select:
+            self._editor.commit_to_preedit ()
+            self.commit_string (self._editor.get_preedit_strings ())
+
         elif key.code in (IBus.KEY_Down, IBus.KEY_KP_Down) :
             res = self._editor.arrow_down ()
             self._update_ui ()
