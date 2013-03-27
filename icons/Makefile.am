@@ -36,6 +36,8 @@ icons_DATA = \
 	english.svg \
 	acommit.svg \
 	ncommit.svg \
+	aselect.svg \
+	nselect.svg \
 	cb-mode.svg \
 	sc-mode.svg \
 	tc-mode.svg \

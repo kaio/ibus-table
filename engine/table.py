@@ -1253,6 +1253,13 @@ class tabengine (IBus.Engine):
                                                    sensitive=True,
                                                    visible=True)
         self.properties.append(self._auto_commit_property)
+        self._auto_select_property = IBus.Property(key=u'aselect',
+                                                   label=None,
+                                                   icon=None,
+                                                   tooltip=None,
+                                                   sensitive=True,
+                                                   visible=True)
+        self.properties.append(self._auto_select_property)
         self.register_properties (self.properties)
         self._refresh_properties ()
 
@@ -1298,6 +1305,12 @@ class tabengine (IBus.Engine):
             self._set_property(self._auto_commit_property, 'ncommit.svg', _('Normal Commit Mode'), _('Switch to direct commit mode'))
         self.update_property(self._auto_commit_property)
 
+        if self._auto_select:
+            self._set_property(self._auto_select_property, 'aselect.svg', _('Auto Select Mode'), _('Switch to normal select mode, which needs you to choose a candidate'))
+        else:
+            self._set_property(self._auto_select_property, 'nselect.svg', _('Normal Select Mode'), _('Switch to auto sеlect mode, which automatically selects the first candidate if no other candidate matches the newly pressed key'))
+        self.update_property(self._auto_select_property)
+
         # the chinese_mode:
         if self.db._is_chinese:
             if self._editor._chinese_mode == 0:
@@ -1328,8 +1341,10 @@ class tabengine (IBus.Engine):
         '''Shift property'''
         if property == u"status":
             self._change_mode ()
+
         elif property == u'py_mode' and self._ime_py:
             self._editor.r_shift ()
+
         elif property == u'onechar':
             self._editor._onechar = not self._editor._onechar
             self._config.set_value(self._config_section,
@@ -1341,6 +1356,14 @@ class tabengine (IBus.Engine):
             self._config.set_value( self._config_section,
                     "AutoCommit",
                     GLib.Variant.new_boolean(self._auto_commit))
+
+        elif property == u'aselect':
+            self._auto_select = not self._auto_select
+            self._editor._auto_select =  not self._editor._auto_select
+            self._config.set_value( self._config_section,
+                    "AutoSelect",
+                    GLib.Variant.new_boolean(self._auto_select))
+
         elif property == u'letter':
             self._full_width_letter [self._mode] = not self._full_width_letter [self._mode]
             if self._mode:
@@ -1362,9 +1385,11 @@ class tabengine (IBus.Engine):
                 self._config.set_value(self._config_section,
                         "EnDefFullWidthPunct",
                         GLib.Variant.new_boolean(self._full_width_punct [self._mode]))
+
         elif property == u'cmode':
             self._editor.change_chinese_mode()
             self.reset()
+
         self._refresh_properties ()
     #    elif property == "setup":
             # Need implementation
@@ -1942,6 +1967,10 @@ class tabengine (IBus.Engine):
         value = variant_to_value(value)
         if name == u'autocommit':
             self._auto_commit = value
+            self._refresh_properties()
+            return
+        elif name == u'autoselect':
+            self._auto_select = value
             self._refresh_properties()
             return
         elif name == u'chinesemode':
