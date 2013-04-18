@@ -70,23 +70,23 @@ opt_parser.add_option( '-n', '--name',
 
 opt_parser.add_option( '-s', '--source',
         action = 'store', dest='source', default = 'xingma.txt.bz2',
-        help = 'tell me which file is the source file of IME, default is %default')
+        help = 'specifies the file which contains the source file of the IME.  The default is %default')
 
 opt_parser.add_option( '-e', '--extra',
         action = 'store', dest='extra', default = '',
-        help = 'tell me which file is the extra words file for IME, default is %default')
+        help = 'specifies the file for the extra words for the IME.  The default is %default')
 
 opt_parser.add_option( '-p', '--pinyin',
         action = 'store', dest='pinyin', default = '/usr/share/ibus-table/data/pinyin_table.txt.bz2',
-        help = 'tell me which file is the source file of pinyin, default is %default')
+        help = 'specifies the source file  for the  pinyin.  The default is %default')
 
 opt_parser.add_option( '-o', '--no-create-index',
         action = 'store_false', dest='index', default = True,
-        help = 'do not create index on database, only for distrubution purpose, normal user should not invoke this flag!')
+        help = 'do not create an index for a database (Only for distrubution purposes, a normal user should not use this flag!)')
 
 opt_parser.add_option( '-i', '--create-index-only',
         action = 'store_true', dest='only_index', default = False,
-        help = 'only create index on exist database')
+        help = 'only create an index for an existing database')
 
 opt_parser.add_option( '-d', '--debug',
         action = 'store_true', dest='debug', default = False,

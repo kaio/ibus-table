@@ -19,6 +19,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
+DOC2MAN = docbook2man
+SGML = ibus-table-createdb.sgml
+BUILT_MANS = ibus-table-createdb.1
+man_MANS = $(BUILT_MANS)
+
 engine_table_PYTHON = \
 	chinese_variants.py \
 	factory.py \
@@ -43,6 +48,8 @@ EXTRA_DIST = \
 	ibus-table-createdb.in \
 	ibus-engine-table.in \
 	table.xml.in \
+	$(SGML) \
+	$(BUILT_MANS) \
 	$(NULL)
 
 CLEANFILES = \
@@ -56,6 +63,11 @@ CLEANFILES = \
 MAINTAINERCLEANFILES = \
 	Makefile.in \
 	$(NULL)
+
+${man_MANS}: ${SGML}
+	$(AM_V_GEN) $(RM) $@; \
+	$(DOC2MAN) ${SGML}; \
+	$(RM) manpage.*
 
 table.xml: table.xml.in
 	( \

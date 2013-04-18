@@ -1,0 +1,206 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+
+<!-- Process this file with docbook-to-man to generate an nroff manual
+     page: `docbook-to-man manpage.sgml > manpage.1'.  You may view
+     the manual page with: `docbook-to-man manpage.sgml | nroff -man |
+     less'.  A typical entry in a Makefile or Makefile.am is:
+
+manpage.1: manpage.sgml
+	docbook-to-man $< > $@
+
+
+	The docbook-to-man binary is found in the docbook-to-man package.
+	Please remember that if you create the nroff version in one of the
+	debian/rules file targets (such as build), you will need to include
+	docbook-to-man in your Build-Depends control field.
+
+  -->
+
+  <!-- Fill in your name for FIRSTNAME and SURNAME. -->
+  <!ENTITY dhfirstname "<firstname>Mike</firstname>">
+  <!ENTITY dhsurname   "<surname>FABIAN</surname>">
+  <!-- Please adjust the date whenever revising the manpage. -->
+  <!ENTITY dhdate      "<date>Apr 18, 2013</date>">
+  <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
+       allowed: see man(7), man(1). -->
+  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
+  <!ENTITY dhemail     "<email>mfabian@redhat.com</email>">
+  <!ENTITY dhusername  "Mike FABIAN">
+  <!ENTITY dhucpackage "<refentrytitle>ibus-table-createdb</refentrytitle>">
+  <!ENTITY dhpackage   "ibus-table-createdb">
+
+  <!ENTITY debian      "<productname>Debian</productname>">
+  <!ENTITY gnu         "<acronym>GNU</acronym>">
+  <!ENTITY gpl         "&gnu; <acronym>GPL</acronym>">
+]>
+
+<refentry>
+  <refentryinfo>
+    <address>
+      &dhemail;
+    </address>
+    <author>
+      &dhfirstname;
+      &dhsurname;
+    </author>
+    <copyright>
+      <year>2013</year>
+      <holder>&dhusername;</holder>
+    </copyright>
+    &dhdate;
+  </refentryinfo>
+  <refmeta>
+    &dhucpackage;
+
+    &dhsection;
+  </refmeta>
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+
+    <refpurpose>create ibus-table database from table source</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+
+      <group>
+        <arg><option>-n</option> <option><replaceable>name</replaceable></option></arg>
+        <arg><option>--name</option> <option><replaceable>name</replaceable></option></arg>
+      </group>
+      <group>
+        <arg><option>-s</option> <option><replaceable>source</replaceable></option></arg>
+        <arg><option>--source</option> <option><replaceable>source</replaceable></option></arg>
+      </group>
+      <group>
+        <arg><option>-e</option> <option><replaceable>extra</replaceable></option></arg>
+        <arg><option>--extra</option> <option><replaceable>extra</replaceable></option></arg>
+      </group>
+      <group>
+        <arg><option>-p</option> <option><replaceable>pinyin</replaceable></option></arg>
+        <arg><option>--pinyin</option> <option><replaceable>pinyin</replaceable></option></arg>
+      </group>
+      <arg><option>-o</option></arg>
+      <arg><option>--no-create-index</option></arg>
+      <arg><option>-i</option></arg>
+      <arg><option>--create-index-only</option></arg>
+      <arg><option>-d</option></arg>
+      <arg><option>--debug</option></arg>
+      <sbr>
+
+     </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para><command>&dhpackage;</command> creates a database for
+      ibus-table from a source table.</para>
+  </refsect1>
+  <refsect1>
+    <title>OPTIONS</title>
+
+    <para>This program follows the usual &gnu; command line syntax,
+      with long options starting with two dashes (`-').  A summary of
+      options is included below.</para>
+
+    <variablelist>
+        <term><option>-n</option>
+          <option>--name</option>
+	  <option><replaceable>database-file</replaceable></option>
+        </term>
+        <listitem>
+          <para><replaceable>database-file</replaceable> specifies the file which will contain the binary database for the IME.  The default is ''.</para>
+        </listitem>
+      </varlistentry>
+        <term><option>-s</option>
+          <option>--source</option>
+	  <option><replaceable>source-file</replaceable></option>
+        </term>
+        <listitem>
+          <para><replaceable>source-file</replaceable> specifies the file which contains the source of the IME.  The default is ''.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-e</option>
+          <option>--extra</option>
+	  <option><replaceable>extra-words-file</replaceable></option>
+        </term>
+        <listitem>
+          <para><replaceable>extra-words-file</replaceable> specifies the file for the extra words for the IME.  The default is ''.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-p</option>
+          <option>--pinyin</option>
+	  <option><replaceable>pinyin-file</replaceable></option>
+        </term>
+        <listitem>
+          <para><replaceable>pinyin-file</replaceable> specifies the source file for the pinyin.  The default is /usr/share/ibus-table/data/pinyin_table.txt.bz2.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-o</option>
+          <option>--no-create-index</option>
+        </term>
+        <listitem>
+          <para>Do not create an index for for a database (Only for distribution purposes, a normal user should not use this flag!)</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-i</option>
+          <option>--create-index-only</option>
+        </term>
+        <listitem>
+          <para>Only create an index for an existing database.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-d</option>
+          <option>--debug</option>
+        </term>
+        <listitem>
+          <para>Print extra debug messages.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>EXAMPLES</title>
+
+    <variablelist>
+      <varlistentry>
+        <term>ibus-table-createdb -n ipa-x-sampa.db -s ipa-x-sampa.txt</term>
+        <listitem><para>Create the binary database <quote>ipa-x-sampa.db</quote> from the source file <quote>ipa-x-sampa.txt</quote>.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>ibus-table-createdb -i -n ipa-x-sampa.db</term>
+        <listitem><para>Create an index for the database <quote>ipa-x-sampa.db</quote>.</para></listitem>
+      </varlistentry>
+    </variablelist>
+
+  </refsect1>
+
+  <refsect1>
+    <title>AUTHOR</title>
+
+    <para>This manual page was written by &dhusername; &dhemail;.</para>
+
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

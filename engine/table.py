@@ -731,10 +731,10 @@ class editor(object):
                         ## chars
                         if not self._chars[1]:
                             # we don't have invalid input chars
-                            # here we need to check the last input
-                            # is a punctuation or not, if is a punct,
-                            # then we use old maner to summit the former valid
-                            # candidate
+                            # here we need to check whether the last input char
+                            # is a punctuation character or not,
+                            # if is a punctuation char, then we use old manner
+                            # to submit the former valid candidate
                             if ascii.ispunct (self._chars[0][-1].encode('ascii')) \
                                     or len (self._chars[0][:-1]) \
                                     in self.db.pkeylens \
@@ -1160,15 +1160,6 @@ class tabengine (IBus.Engine):
                 "AutoCommit"))
         if self._auto_commit == None:
             self._auto_commit = self.db.get_ime_property('auto_commit').lower() == u'true'
-        
-        self._auto_select = variant_to_value(self._config.get_value(
-                self._config_section,
-                "AutoSelect"))
-        if self._auto_select == None:
-            if self.db.get_ime_property('auto_select') != None:
-                self._auto_select = self.db.get_ime_property('auto_select').lower() == u'true'
-            else:
-                self._auto_select = False
         
         # the commit phrases length
         self._len_list = [0]
@@ -1759,7 +1750,7 @@ class tabengine (IBus.Engine):
                 sp_res = self._editor.space ()
                 #return (KeyProcessResult,whethercommit,commitstring)
                 if sp_res[0]:
-                    if self._auto_select:
+                    if self._editor._auto_select:
                         self.commit_string ("%s " %sp_res[1])
                     else:
                         self.commit_string (sp_res[1])
@@ -1940,6 +1931,10 @@ class tabengine (IBus.Engine):
             return
         print "config value %(n)s for engine %(en)s changed" %{'n': name, 'en': self._name}
         value = variant_to_value(value)
+        if name == u'autoselect':
+            self._editor._auto_select = value
+            self._refresh_properties()
+            return
         if name == u'autocommit':
             self._auto_commit = value
             self._refresh_properties()
