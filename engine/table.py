@@ -765,11 +765,17 @@ class editor(object):
                                         return True
 
                                 if self._candidates[1]:
-                                    self._candidates[0] = self._candidates[1]
-                                    self._candidates[1] = []
-                                    last_input = self.pop_input ()
-                                    self.auto_commit_to_preedit ()
-                                    res = self.add_input( last_input )
+                                    # If there are no candidates but there were
+                                    # for previous input, we process that case
+                                    # in tabengine, (auto-select mode)
+                                    if self._auto_select:
+                                        res=False
+                                    else:
+                                        self._candidates[0] = self._candidates[1]
+                                        self._candidates[1] = []
+                                        last_input = self.pop_input ()
+                                        self.auto_commit_to_preedit ()
+                                        res = self.add_input( last_input )
                                     return res
                                 else:
                                     self.pop_input ()
@@ -1722,9 +1728,17 @@ class tabengine (IBus.Engine):
             return True
 
         elif key.code in (IBus.KEY_Return, IBus.KEY_KP_Enter):
-            commit_string = self._editor.get_all_input_strings ()
+            if self._auto_select:
+                self._editor.commit_to_preedit ()
+                commit_string = self._editor.get_preedit_strings () + os.linesep
+            else:
+                commit_string = self._editor.get_all_input_strings ()    
             self.commit_string (commit_string)
             return True
+
+        elif key.code in (IBus.KEY_Tab, IBus.KEY_KP_Tab) and self._auto_select:
+            self._editor.commit_to_preedit ()
+            self.commit_string (self._editor.get_preedit_strings ())
 
         elif key.code in (IBus.KEY_Down, IBus.KEY_KP_Down) :
             res = self._editor.arrow_down ()
@@ -1838,20 +1852,28 @@ class tabengine (IBus.Engine):
 
             res = self._editor.add_input ( keychar )
             if not res:
-                if ascii.ispunct (key.code):
+                # If this input has no candidate but the previous had,
+                # we remove the last input, commit the previous candidate
+                # and reprocess the last input (auto-select mode)
+                reprocess_last_key=False
+                if self._auto_select and self._editor._candidates[1]:
+                    self._editor.pop_input ()
+                    reprocess_last_key=True
+                    key_char=''
+                elif ascii.ispunct (key.code):
                     key_char = cond_punct_translate (keychar)
                 else:
                     key_char = cond_letter_translate (keychar)
                 sp_res = self._editor.space ()
-                #return (KeyProcessResult,whethercommit,commitstring)
                 if sp_res[0]:
                     self.commit_string (sp_res[1] + key_char)
                     #self.add_string_len(sp_res[1])
                     self.db.check_phrase (sp_res[1],sp_res[2])
-                    return True
                 else:
                     self.commit_string ( key_char )
-                    return True
+                if reprocess_last_key == True:
+                    self._table_mode_process_key_event(key)
+                return True
             else:
                 if self._auto_commit and self._editor.one_candidate () and \
                         (len(self._editor._chars[0]) == self._ml \
