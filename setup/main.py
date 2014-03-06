@@ -56,7 +56,8 @@ ibus_lib_dir = os.getenv('IBUS_TABLE_LIB_LOCATION')
 
 if not ibus_dir or not os.path.exists(ibus_dir):
     ibus_dir = "/usr/share/ibus-table/"
-    ibus_lib_dir = "/usr/lib/ibus-table"
+if not ibus_lib_dir or not os.path.exists(ibus_lib_dir):
+    ibus_lib_dir = "/usr/libexec"
 
 db_dir = os.path.join (ibus_dir, 'tables')
 icon_dir = os.path.join (ibus_dir, 'icons')
@@ -82,7 +83,7 @@ class PreferencesDialog:
         if self.__table_name not in names:
             ret = False
             msg = _("IBus Table {} is not available").format(self.__table_name)
-            mdialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.ERROR, 
+            mdialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.ERROR,
                     Gtk.ButtonsType.OK, msg)
             mdialog.props.title = "IBus Table Setup Error"
             mdialog.run()
@@ -102,13 +103,13 @@ class PreferencesDialog:
         self.__builder.add_from_file("ibus-table-preferences.ui")
         self.__dialog = self.__builder.get_object("dialog")
 
-        for name in OPTION_DEFAULTS.keys():
+        for name in list(OPTION_DEFAULTS.keys()):
             if name not in SCALE_WIDGETS:
                 self._build_combobox_renderer(name)
 
     def do_init(self):
         self.__config = self.__bus.get_config()
-        self.__config_section = ("engine/Table/%s" % 
+        self.__config_section = ("engine/Table/%s" %
                 self.__table_name.replace(" ", "_"))
 
         self.__init_general()
@@ -120,7 +121,7 @@ class PreferencesDialog:
         self.__values = self.__config.get_values(self.__config_section).unpack()
         self.__config.connect ("value-changed", self.__config_value_changed_cb)
 
-        for name in OPTION_DEFAULTS.keys():
+        for name in list(OPTION_DEFAULTS.keys()):
             #self.__config.unset(self.__config_section, name); continue
             if name in SCALE_WIDGETS:
                 self._init_hscale(name)
@@ -252,7 +253,7 @@ class PreferencesDialog:
         elif isinstance(val, str):
             var = GLib.Variant.new_string(val)
         else:
-            print >> sys.stderr, "val(%s) is not in support type." % repr(val)
+            sys.stderr.write("val(%s) is not in support type." %repr(val))
             return
 
         self.__values[name] = val

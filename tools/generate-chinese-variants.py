@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # vim:fileencoding=utf-8:sw=4:et
 
 # generate-chinese-variants
@@ -21,8 +21,9 @@
 import re
 import logging
 import sys
-reload (sys)
-sys.setdefaultencoding('utf-8')
+if sys.version_info < (3,0,0):
+    reload (sys)
+    sys.setdefaultencoding('utf-8')
 
 # Unihan_Variants.txt contains the following 2 lines:
 #
@@ -76,7 +77,10 @@ def read_unihan_variants(file):
             if re.search('(kTraditionalVariant|kSimplifiedVariant)', line):
                 match = re.match(r'^U\+([0-9A-F]{4,5})', line)
                 if match:
-                    char = unichr(int(match.group(1), 16))
+                    if sys.version_info >= (3,0,0): # Python3
+                        char = chr(int(match.group(1), 16))
+                    else:
+                        char = unichr(int(match.group(1), 16))
                     category = 0 # should never  stay at this value
                     if re.match(re.escape(match.group(0))
                                 + r'.*'
@@ -126,7 +130,7 @@ def detect_chinese_category_old(phrase):
         tmp_phrase.encode('gb2312')
         category |= 1
     except:
-        if '〇'.decode('utf8') in tmp_phrase:
+        if u'〇' in tmp_phrase:
             # we add '〇' into SC as well
             category |= 1
     # second check big5-hkscs
@@ -175,8 +179,9 @@ def write_variants_script(file):
 
     file.write('''
 import sys
-reload (sys)
-sys.setdefaultencoding('utf-8')
+if sys.version_info < (3,0,0):
+    reload (sys)
+    sys.setdefaultencoding('utf-8')
 ''')
 
     file.write('''
@@ -188,9 +193,11 @@ variants_table = {
     # 4 = 1 << 2       mixture of simplified and traditional Chinese
 ''')
 
-    for phrase in variants_table_orig:
+    for phrase in sorted(variants_table_orig):
+        if type(phrase) != type(u''):
+            phrase = phrase.decode('utf-8')
         file.write(
-            "    u'" + phrase.encode('utf-8') + "': "
+            "    u'" + phrase + "': "
             + "%s" %variants_table_orig[phrase] + ",\n")
 
     file.write('''    }
@@ -268,10 +275,10 @@ def test_detection(generated_script):
     logging.info('Testing detection ...')
     for phrase in test_data:
         if generated_script.detect_chinese_category(phrase) != test_data[phrase]:
-            print 'phrase', phrase, repr(phrase),
-            print 'detected as', generated_script.detect_chinese_category(phrase),
-            print 'should have been', test_data[phrase],
-            print 'Test failed. exiting...'
+            print('phrase', phrase, repr(phrase),
+                  'detected as', generated_script.detect_chinese_category(phrase),
+                  'should have been', test_data[phrase],
+                  'Test failed. exiting...')
             exit (1)
         else:
             logging.info('phrase=%(p)s %(repr)s detected as %(det)d OK.'

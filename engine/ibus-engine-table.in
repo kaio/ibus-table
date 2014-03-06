@@ -21,10 +21,15 @@
 #
 
 prefix=@prefix@
+exec_prefix=@prefix@
 datarootdir=@datarootdir@
 datadir=@datadir@
 export IBUS_TABLE_LOCATION=@datarootdir@/ibus-table
-export IBUS_TABLE_LIB_LOCATION=@prefix@/lib/ibus-table
+export IBUS_TABLE_LIB_LOCATION=@libexecdir@
+
+# Set this to something if you want benchmarking (The profiling output
+# will appear in the debug long when "ibus restart" is executed):
+# export IBUS_TABLE_PROFILE=yes
 
 for arg in $@; do
 	case $arg in
@@ -32,13 +37,13 @@ for arg in $@; do
 		exec @PYTHON@ @datarootdir@/ibus-table/engine/main.py --xml;;
 	--help | -h)
 		exec @PYTHON@ @datarootdir@/ibus-table/engine/main.py $@;;
-  *)
-    # first running speedmeter as a daemon
-    #@PYTHON@ @datarootdir@/ibus-table/engine/speedmeter.py -d > /dev/null
-
-    # then start our IME
-    exec @PYTHON@ @datarootdir@/ibus-table/engine/main.py $@
-    exit 0
+        *)
+                if [ "x${IBUS_TABLE_PROFILE}" != "x" ]; then
+                    exec @PYTHON@ @datarootdir@/ibus-table/engine/main.py --profile $@
+                else
+                    exec @PYTHON@ @datarootdir@/ibus-table/engine/main.py $@
+                fi
+                exit 0
 	esac
 done
 

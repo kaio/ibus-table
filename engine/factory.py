@@ -28,14 +28,9 @@ import tabsqlitedb
 import os
 from re import compile as re_compile
 
-path_patt = re_compile(r'[^a-zA-Z0-9_/]')
-
 from gettext import dgettext
 _  = lambda a : dgettext ("ibus-table", a)
 N_ = lambda a : a
-
-engine_base_path = "/com/redhat/IBus/engines/table/%s/engine/"
-
 
 class EngineFactory (IBus.Factory):
     """Table IM Engine Factory"""
@@ -44,10 +39,10 @@ class EngineFactory (IBus.Factory):
         # this is the backend sql db we need for our IME
         # we need get lots of IME property from this db :)
         #self.db = tabsqlitedb.tabsqlitedb( name = database )
-        
+
         if db:
             self.dbusname = os.path.basename(db).replace('.db','')
-            udb = os.path.basename(db).replace('.db','-user.db') 
+            udb = os.path.basename(db).replace('.db','-user.db')
             self.db = tabsqlitedb.tabsqlitedb( name = db,user_db = udb )
             self.db.db.commit()
             self.dbdict = {self.dbusname:self.db}
@@ -55,51 +50,50 @@ class EngineFactory (IBus.Factory):
             self.db = None
             self.dbdict = {}
 
-        
+
         # init factory
         self.bus = bus
         super(EngineFactory,self).__init__ (connection=bus.get_connection(),
                                             object_path=IBus.PATH_FACTORY)
         self.engine_id=0
-    
+
     def do_create_engine(self, engine_name):
-        # because we need db to be past to Engine
-        # the type (engine_name) == dbus.String
-        name = engine_name.encode ('utf8')
-        self.engine_path = engine_base_path % path_patt.sub ('_', name)
+        engine_base_path = "/com/redhat/IBus/engines/table/%s/engine/"
+        path_patt = re_compile(r'[^a-zA-Z0-9_/]')
+        self.engine_path = engine_base_path % path_patt.sub ('_', engine_name)
         try:
             if not self.db:
                 # first check self.dbdict
-                if not name in self.dbdict:
+                if not engine_name in self.dbdict:
                     try:
                         db_dir = os.path.join (os.getenv('IBUS_TABLE_LOCATION'),'tables')
                     except:
                         db_dir = "/usr/share/ibus-table/tables"
-                    db = os.path.join (db_dir,name+'.db')
-                    udb = name+'-user.db'
+                    db = os.path.join (db_dir, engine_name+'.db')
+                    udb = engine_name+'-user.db'
                     if not os.path.exists(db):
                         byo_db_dir = os.path.join(os.getenv('HOME'), '.ibus/byo-tables')
-                        db = os.path.join(byo_db_dir, name + '.db')                    
+                        db = os.path.join(byo_db_dir, engine_name + '.db')
                     _sq_db = tabsqlitedb.tabsqlitedb( name = db,user_db = udb )
                     _sq_db.db.commit()
-                    self.dbdict[name] = _sq_db
+                    self.dbdict[engine_name] = _sq_db
             else:
                 name = self.dbusname
 
             engine = table.tabengine(self.bus, self.engine_path \
-                    + str(self.engine_id), self.dbdict[name])
+                    + str(self.engine_id), self.dbdict[engine_name])
             self.engine_id += 1
             #return engine.get_dbus_object()
             return engine
         except:
-            print "fail to create engine %s" % engine_name
+            print("failed to create engine %s" %engine_name)
             import traceback
             traceback.print_exc ()
-            raise Exception("Can not create engine %s" % engine_name)
+            raise Exception("Cannot create engine %s" %engine_name)
 
     def do_destroy (self):
         '''Destructor, which finish some task for IME'''
-        # 
+        #
         ## we need to sync the temp userdb in memory to the user_db on disk
         for _db in self.dbdict:
             self.dbdict[_db].sync_usrdb ()

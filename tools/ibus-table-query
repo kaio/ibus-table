@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # vim:fileencoding=utf-8:sw=4:et
 
 # query-ibus-table
@@ -142,7 +142,10 @@ def print_result(table_sql, result):
         for i in range(3, len(row) - 4):
             if row[i]:
                 row[i] = "{}|{: <2}".format(tab_dict_rev.get(row[i]), row[i])
-        row_str = [unicode(x).strip() if x is not None else " " for x in row]
+        if sys.version_info >= (3,0,0): # Python3
+            row_str = [str(x).strip() if x is not None else " " for x in row]
+        else:
+            row_str = [unicode(x).strip() if x is not None else " " for x in row]
         row_str[-1], row_str[-3] = row_str[-3], row_str[-1]
         if len(row_str[-1]) == 1:
             row_str[-1] += "[U+{:X}]".format(ord(row_str[-1]))
@@ -169,7 +172,9 @@ def main():
     log.basicConfig(format="%(levelname)s>> %(message)s", level=log_level)
 
     table_prefix = args.table_name
-    keys = args.keys[0].decode(NATIVE)
+    keys = args.keys[0]
+    if type(keys) != type(u''):
+       keys = keys.decode(NATIVE)
 
     table_path = get_table_path(table_prefix)
     if not table_path:

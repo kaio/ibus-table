@@ -25,7 +25,6 @@ import optparse
 from gi.repository import IBus
 from gi.repository import GLib
 import re
-patt = re.compile (r'<\?.*\?>\n')
 from signal import signal, SIGTERM, SIGINT
 
 import factory
@@ -39,7 +38,7 @@ home_ibus_dir = os.path.join(os.getenv('HOME'), ".ibus")
 if not ibus_dir or not os.path.exists(ibus_dir):
     ibus_dir = "/usr/share/ibus-table/"
 if not ibus_lib_dir or not os.path.exists(ibus_lib_dir):
-    ibus_lib_dir = "/usr/lib/ibus-table"
+    ibus_lib_dir = "/usr/libexec"
 if not home_ibus_dir or not os.path.exists(home_ibus_dir):
     home_ibus_dir = os.path.expanduser("~/.ibus")
 
@@ -63,10 +62,12 @@ opt.add_option('--ibus', '-i',
 opt.add_option('--xml', '-x',
         action = 'store_true',dest = 'xml',default = False,
         help = 'output the engines xml part, default: %default')
-
 opt.add_option('--no-debug', '-n',
         action = 'store_false',dest = 'debug',default = True,
         help = 'redirect stdout and stderr to ~/.ibus/tables/debug.log, default: %default')
+opt.add_option('--profile', '-p',
+        action = 'store_true', dest = 'profile', default = False,
+        help = 'print profiling information into the debug log. Works only together with --debug.')
 
 (options, args) = opt.parse_args()
 #if not options.db:
@@ -76,12 +77,14 @@ if (not options.xml) and options.debug:
     if not os.access ( os.path.expanduser('~/.ibus/tables'), os.F_OK):
         os.system ('mkdir -p ~/.ibus/tables')
     logfile = os.path.expanduser('~/.ibus/tables/debug.log')
-    sys.stdout = open (logfile,'a',0)
-    sys.stderr = open (logfile,'a',0)
+    sys.stdout = open (logfile, mode='a', buffering=1)
+    sys.stderr = open (logfile, mode='a', buffering=1)
     from time import strftime
-    print '--- ', strftime('%Y-%m-%d: %H:%M:%S'), ' ---'
+    print('--- %s ---' %strftime('%Y-%m-%d: %H:%M:%S'))
 
-
+if options.profile:
+    import cProfile, pstats
+    profile = cProfile.Profile()
 
 class IMApp:
     def __init__(self, dbfile, exec_by_ibus):
@@ -89,7 +92,7 @@ class IMApp:
         self.__bus = IBus.Bus()
         self.__bus.connect("disconnected", self.__bus_destroy_cb)
         self.__factory = factory.EngineFactory(self.__bus, dbfile)
-        self.destroied = False
+        self.destroyed = False
         if exec_by_ibus:
             self.__bus.request_name("org.freedesktop.IBus.Table", 0)
         else:
@@ -130,6 +133,8 @@ class IMApp:
 
 
     def run(self):
+        if options.profile:
+            profile.enable()
         self.__mainloop.run()
         self.__bus_destroy_cb()
 
@@ -137,12 +142,22 @@ class IMApp:
         self.__bus_destroy_cb()
 
     def __bus_destroy_cb(self, bus=None):
-        if self.destroied:
+        if self.destroyed:
             return
-        print "finalizing:)"
+        print("finalizing:)")
         self.__factory.do_destroy()
-        self.destroied = True
+        self.destroyed = True
         self.__mainloop.quit()
+        if options.profile:
+            profile.disable()
+            p = pstats.Stats(profile)
+            p.strip_dirs()
+            p.sort_stats('cumulative')
+            p.print_stats('main', 25)
+            p.print_stats('factory', 25)
+            p.print_stats('tabdict', 25)
+            p.print_stats('tabsqlite', 25)
+            p.print_stats('table', 25)
 
 def cleanup (ima_ins):
     ima_ins.quit()
@@ -173,7 +188,7 @@ def main():
         #    Elements
         dbs = os.listdir(db_dir)
         dbs = filter (lambda x: x.endswith('.db'), dbs)
-       
+
         _all_dbs = []
         for _db in dbs:
             _all_dbs.append(os.path.join (db_dir, _db))
@@ -185,16 +200,16 @@ def main():
         except OSError:
             # byo_db_dir does not exist or is not accessible
             pass
-            
+
         egs = Element('engines')
         for _db in _all_dbs:
             _sq_db = tabsqlitedb.tabsqlitedb (_db)
             _engine = SubElement (egs,'engine')
-            
+
             _name = SubElement (_engine, 'name')
             _name.text = os.path.basename(_db).replace ('.db','')
             setup_arg = "{} {}".format(setup_cmd, _name.text)
-            
+
             _longname = SubElement (_engine, 'longname')
             _longname.text = ''
             try:
@@ -205,7 +220,7 @@ def main():
                 pass
             if not _longname.text:
                 _longname.text = _name.text
-            
+
             _language = SubElement (_engine, 'language')
             _langs = _sq_db.get_ime_property ('languages')
             if _langs:
@@ -226,7 +241,7 @@ def main():
             _icon_basename = _sq_db.get_ime_property ('icon')
             if _icon_basename:
                 _icon.text = os.path.join (icon_dir, _icon_basename)
-            
+
             _layout = SubElement (_engine, 'layout')
             _layout.text = _sq_db.get_ime_property ('layout')
 
@@ -241,10 +256,10 @@ def main():
 
         # now format the xmlout pretty
         indent (egs)
-        egsout = tostring (egs, encoding='utf8')
+        egsout = tostring (egs, encoding='utf8').decode('utf-8')
+        patt = re.compile (r'<\?.*\?>\n')
         egsout = patt.sub ('',egsout)
-        print egsout
-        
+        print('%s' %egsout)
         return 0
 
     if options.daemon :

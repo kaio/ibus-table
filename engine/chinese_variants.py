@@ -19,8 +19,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-reload (sys)
-sys.setdefaultencoding('utf-8')
+if sys.version_info < (3,0,0):
+    reload (sys)
+    sys.setdefaultencoding('utf-8')
 
 variants_table = {
     # Meaning of the bits in the values:

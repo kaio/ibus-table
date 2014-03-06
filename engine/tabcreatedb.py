@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # vim:et sts=4 sw=4
 #
@@ -109,13 +109,13 @@ if not opts.name and opts.source:
 
 if not opts.name:
     opt_parser.print_help()
-    print '\nYou need to specify the file which contains the source of the IME!'
+    print('\nYou need to specify the file which contains the source of the IME!')
     sys.exit(2)
 
 def main ():
     def debug_print ( message ):
         if opts.debug:
-            print message
+            print(message)
 
     if not opts.only_index:
         try:
@@ -150,7 +150,7 @@ def main ():
             for line in _table:
                 res = patt_s.match(line)
                 if res:
-                    if gouci_dict.has_key(res.group(2)):
+                    if res.group(2) in gouci_dict:
                         if len(res.group(1)) > len(gouci_dict[res.group(2)]):
                             gouci_dict[res.group(2)] = res.group(1)
                     else:
@@ -194,13 +194,17 @@ def main ():
 
     def pinyin_parser (f):
         for py in f:
-            _zi, _pinyin, _freq = unicode (py,'utf-8').strip ().split()
+            if type(py) != type(u''):
+                py = py.decode('utf-8')
+            _zi, _pinyin, _freq = py.strip().split()
             yield (_pinyin, _zi, _freq)
 
     def phrase_parser (f):
         list=[]
         for l in f:
-            xingma, phrase, freq = unicode (l, "utf-8").strip ().split ('\t')[:3]
+            if type(l) != type(u''):
+                l = l.decode('utf-8')
+            xingma, phrase, freq = l.strip().split('\t')[:3]
             if phrase == 'NOSYMBOL':
                 phrase = u''
             list.append ( (xingma, phrase, int(freq), 0) )
@@ -208,15 +212,19 @@ def main ():
 
     def goucima_parser (f):
         for l in f:
-            zi,gcm = unicode (l, "utf-8").strip ().split ()
+            if type(l) != type(u''):
+                l = l.decode('utf-8')
+            zi,gcm = l.strip().split()
             yield (zi, gcm)
 
     def attribute_parser (f):
         for l in f:
+            if type(l) != type(u''):
+                l = l.decode('utf-8')
             try:
-                attr,val = unicode (l,"utf-8").strip().split ('=')
+                attr,val = l.strip().split('=')
             except:
-                attr,val = unicode (l,"utf-8").strip().split ('==')
+                attr,val = l.strip().split('==')
             attr = attr.strip().lower()
             val = val.strip()
             if attr == 'name' and not gconf_valid_keyname(val):
@@ -226,12 +234,14 @@ def main ():
     def extra_parser (f):
         list = []
         for l in f:
-            phrase, freq = unicode (l, "utf-8").strip ().split ()
+            if type(l) != type(u''):
+                l = l.decode('utf-8')
+            phrase, freq = l.strip().split ()
             try:
                 _tabkey = db.parse_phrase_to_tabkeys(phrase)
                 list.append( (_tabkey,phrase,freq,0) )
             except:
-                print '\"%s\" would not been added' % phrase.encode('utf-8')
+                print('\"%s\" would not been added' %phrase)
         return list
 
     if opts.only_index:
@@ -251,7 +261,7 @@ def main ():
     if _bz2s:
         source = bz2.BZ2File ( opts.source, "r" )
     else:
-        source = file ( opts.source, 'r' )
+        source = open(opts.source, mode='r', encoding='UTF-8')
     # first get config line and table line and goucima line respectively
     debug_print ('\tParsing table source file ')
     attri,table,gouci =  parse_source ( source )
@@ -312,15 +322,19 @@ def main ():
         # first get the entry of original phrases from
         # phrases-[(xingma, phrase, int(freq), 0)]
         orig_phrases = {}
-        map (lambda x: orig_phrases.update({"%s\t%s"%(x[0],x[1]):x}), phrases )
+        for x in phrases:
+            orig_phrases.update({"%s\t%s"%(x[0],x[1]):x})
         debug_print( '\t  the len of orig_phrases is: %d' % len(orig_phrases) )
         extra_phrases = {}
-        map (lambda x: extra_phrases.update({"%s\t%s" %(x[0],x[1]):x}), extrawds )
+        for x in extrawds:
+            extra_phrases.update({"%s\t%s" %(x[0],x[1]):x})
         debug_print ( '\t  the len of extra_phrases is: %d' % len(extra_phrases) )
         # pop duplicated keys
-        map (lambda x: extra_phrases.pop(x) if orig_phrases.has_key(x) else 0, extra_phrases.keys() )
+        for x in extra_phrases:
+            if x in orig_phrases:
+                extra_phrases.pop(x)
         debug_print( '\t  %d extra phrases will be added' % len(extra_phrases))
-        new_phrases = extra_phrases.values()
+        new_phrases = list(extra_phrases.values())
         debug_print ('\tAdding extra words into DB ')
         db.add_phrases (new_phrases)
         debug_print ("Optimizing database ")

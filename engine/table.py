@@ -25,11 +25,11 @@ __all__ = (
     "tabengine",
 )
 
+import sys
 import os
 import string
 from gi.repository import IBus
 from gi.repository import GLib
-from curses import ascii
 #import tabsqlitedb
 import tabdict
 import re
@@ -42,6 +42,43 @@ patt_uncommit = re.compile (r'(.*)@@@(.*)')
 from gettext import dgettext
 _  = lambda a : dgettext ("ibus-table", a)
 N_ = lambda a : a
+
+
+def ascii_ispunct(character):
+    '''
+    Use our own function instead of ascii.ispunct()
+    from “from curses import ascii” because the behaviour
+    of the latter is kind of weird. In Python 3.3.2 it does
+    for example:
+
+        >>> from curses import ascii
+        >>> ascii.ispunct('.')
+        True
+        >>> ascii.ispunct(u'.')
+        True
+        >>> ascii.ispunct('a')
+        False
+        >>> ascii.ispunct(u'a')
+        False
+        >>>
+        >>> ascii.ispunct(u'あ')
+        True
+        >>> ascii.ispunct('あ')
+        True
+        >>>
+
+    あ isn’t punctuation. ascii.ispunct() only really works
+    in the ascii range, it returns weird results when used
+    over the whole unicode range. Maybe we should better use
+    unicodedata.category(), which works fine to figure out
+    what is punctuation for all of unicode. But at the moment
+    I am only porting from Python2 to Python3 and just want to
+    preserve the original behaviour for the moment.
+    '''
+    if character in '''!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~''':
+        return True
+    else:
+        return False
 
 def variant_to_value(variant):
     if type(variant) != GLib.Variant:
@@ -62,7 +99,7 @@ def variant_to_value(variant):
         else:
             return variant.dup_strv()
     else:
-        print 'error: unknown variant type:', type_string
+        print('error: unknown variant type: %s' %type_string)
     return variant
 
 def argb(a, r, g, b):
@@ -138,14 +175,20 @@ def unichar_half_to_full (c):
     code = ord (c)
     for half, full, size in __half_full_table:
         if code >= half and code < half + size:
-            return unichr (full + code - half)
+            if sys.version_info >= (3,0,0):
+                return chr (full + code - half)
+            else:
+                return unichr (full + code - half)
     return c
 
 def unichar_full_to_half (c):
     code = ord (c)
     for half, full, size in __half_full_table:
         if code >= full and code < full + size:
-            return unichr (half + code - full)
+            if sys.version_info >= (3,0,0):
+                return chr (half + code - full)
+            else:
+                return unichr (half + code - full)
     return c
 
 SAVE_USER_COUNT_MAX = 16
@@ -188,7 +231,7 @@ class editor(object):
         self._tabkey_list = []
         # self._strings: hold preedit strings
         self._strings = []
-        # self._cursor: the caret position in preedit phrases 
+        # self._cursor: the caret position in preedit phrases
         self._cursor = [0,0]
         # self._candidates: hold candidates selected from database [[now],[pre]]
         self._candidates = [[],[]]
@@ -234,7 +277,7 @@ class editor(object):
                 "ChineseMode"))
         if self._chinese_mode == None:
             self._chinese_mode = self.get_chinese_mode()
-        
+
         self._auto_select = variant_to_value(self._config.get_value(
                 self._config_section,
                 "AutoSelect"))
@@ -272,9 +315,9 @@ class editor(object):
             return __db_chinese_mode
         # otherwise
         try:
-            if os.environ.has_key('LC_ALL'):
+            if 'LC_ALL' in os.environ:
                 __lc = os.environ['LC_ALL'].split('.')[0].lower()
-            elif os.environ.has_key('LC_CTYPE'):
+            elif 'LC_CTYPE' in os.environ:
                 __lc = os.environ['LC_CTYPE'].split('.')[0].lower()
             else:
                 __lc = os.environ['LANG'].split('.')[0].lower()
@@ -391,7 +434,7 @@ class editor(object):
         return u''.join(map(str,self._t_chars))
 
     def get_all_input_strings (self):
-        '''Get all uncommit input characters, used in English mode or direct commit'''
+        '''Get all uncommited input characters, used in English mode or direct commit'''
         return  u''.join( map(u''.join, self._u_chars + [self._chars[0]] \
             + [self._chars[1]]) )
 
@@ -400,7 +443,7 @@ class editor(object):
         return self._pt.index(key)
 
     def split_phrase (self):
-        '''Splite current phrase into two phrase'''
+        '''Split current phrase into two phrases'''
         _head = u''
         _end = u''
         try:
@@ -487,11 +530,11 @@ class editor(object):
                 _p_index = 8
             else:
                 _p_index = self.get_index ('phrase')
-            _candi = u'###' + self._candidates[0][ int (self._lookup_table.get_cursor_pos() ) ][ _p_index ] + u'###' 
+            _candi = u'###' + self._candidates[0][ int (self._lookup_table.get_cursor_pos() ) ][ _p_index ] + u'###'
         else:
             input_chars = self.get_input_chars ()
             if input_chars:
-                _candi = u''.join( ['###'] + map( str, input_chars) + ['###'] )
+                _candi = u''.join( ['###'] + list(map( str, input_chars)) + ['###'] )
             else:
                 _candi = u''
         if self._strings:
@@ -505,7 +548,7 @@ class editor(object):
                 res = u''.join( self._strings[ : _cursor ] + [ _candi  ] + self._strings[ _cursor : ])
             return res
         else:
-            return _candi 
+            return _candi
     def add_caret (self, addstr):
         '''add length to caret position'''
         self._caret += len(addstr)
@@ -514,17 +557,18 @@ class editor(object):
         '''Get caret position in preedit strings'''
         self._caret = 0
         if self._cursor[0] and self._strings:
-            map (self.add_caret,self._strings[:self._cursor[0]])
+            for x in self._strings[:self._cursor[0]]:
+                self.add_caret(x)
         self._caret += self._cursor[1]
         if self._candidates[0]:
             if self._py_mode:
                 _p_index = 8
             else:
                 _p_index = self.get_index ('phrase')
-            _candi =self._candidates[0][ int (self._lookup_table.get_cursor_pos() ) ][ _p_index ] 
+            _candi =self._candidates[0][ int (self._lookup_table.get_cursor_pos() ) ][ _p_index ]
         else:
             _candi = u''.join( map( str,self.get_input_chars()) )
-        self._caret += len( _candi ) 
+        self._caret += len( _candi )
         return self._caret
 
     def arrow_left (self):
@@ -740,18 +784,17 @@ class editor(object):
                             # is a punctuation character or not,
                             # if is a punctuation char, then we use old manner
                             # to submit the former valid candidate
-                            if ascii.ispunct (self._chars[0][-1].encode('ascii')) \
+                            if ascii_ispunct(self._chars[0][-1]) \
                                     or len (self._chars[0][:-1]) \
                                     in self.db.pkeylens \
                                     or only_one_last \
                                     or self._auto_select:
-                                    
                                 # because we use [!@#$%] to denote [12345]
                                 # in py_mode, so we need to distinguish them
                                 ## old manner:
                                 if self._py_mode:
                                     if self._chars[0][-1] in "!@#$%":
-                                        self._chars[0].pop() 
+                                        self._chars[0].pop()
                                         self._tabkey_list.pop()
                                         return True
 
@@ -786,10 +829,10 @@ class editor(object):
                         self._lookup_table.set_cursor_visible(True)
                 self._candidates[1] = self._candidates[0]
 
-        return True    
+        return True
 
     def commit_to_preedit (self):
-        '''Add select phrase in lookup table to preedit string'''
+        '''Add selected phrase in lookup table to preedit string'''
         if self._chars[0]:
             if not self._py_mode:
                 _p_index = self.get_index('phrase')
@@ -810,7 +853,7 @@ class editor(object):
             return False
 
     def auto_commit_to_preedit (self):
-        '''Add select phrase in lookup table to preedit string'''
+        '''Add selected phrase in lookup table to preedit string'''
         if not self._py_mode:
             _p_index = self.get_index('phrase')
         else:
@@ -829,7 +872,7 @@ class editor(object):
         input_chars = self.get_input_chars ()
         if input_chars:
             #aux_string =  u' '.join( map( u''.join, self._u_chars + [self._chars[0]] ) )
-            aux_string =   u''.join (self._chars[0]) 
+            aux_string =   u''.join (self._chars[0])
             if self._py_mode:
                 aux_string = aux_string.replace('!','1').replace('@','2').replace('#','3').replace('$','4').replace('%','5')
             return aux_string
@@ -857,7 +900,8 @@ class editor(object):
                 looklen < len(self._candidates[0])):
             endpos = looklen + psize
             batch = self._candidates[0][looklen:endpos]
-            map(self.ap_candidate, batch)
+            for x in batch:
+                self.ap_candidate(x)
 
     def cursor_down(self):
         '''Process Arrow Down Key Event
@@ -998,7 +1042,7 @@ class editor(object):
             return False
 
     def toggle_tab_py_mode (self):
-        '''Proess Right Shift Key Event as changed between PinYin Mode and Table Mode'''
+        '''Toggle between Pinyin Mode and Table Mode'''
         self._zi = u''
         if self._chars[0]:
             self.commit_to_preedit ()
@@ -1006,7 +1050,7 @@ class editor(object):
         return True
 
     def cycle_next_cand(self):
-        """Left Alt key, cycle cursor to next candidate in the page."""
+        '''Cycle cursor to next candidate in the page.'''
         total = len(self._candidates[0])
 
         if total > 0:
@@ -1025,7 +1069,7 @@ class editor(object):
         '''Process space Key Event
         return (KeyProcessResult,whethercommit,commitstring)'''
         if self._chars[1]:
-            # we have invalid input, so do not commit 
+            # we have invalid input, so do not commit
             return (False,u'')
         if self._t_chars :
             # user has input sth
@@ -1059,7 +1103,7 @@ class tabengine (IBus.Engine):
         # this is the backend sql db we need for our IME
         # we receive this db from IMEngineFactory
         #self.db = tabsqlitedb.tabsqlitedb( name = dbname )
-        self.db = db 
+        self.db = db
         # this is the parer which parse the input string to key object
         self._parser = tabdict.parse
 
@@ -1076,10 +1120,10 @@ class tabengine (IBus.Engine):
             else:
                 self._ime_py = False
         else:
-            print 'We could not find "pinyin_mode" entry in database, is it an outdated database?'
+            print('We could not find "pinyin_mode" entry in database, is it an outdated database?')
             self._ime_py = False
 
-        self._status = self.db.get_ime_property('status_prompt').encode('utf8')
+        self._status = self.db.get_ime_property('status_prompt')
         # now we check and update the valid input characters
         self._chars = self.db.get_ime_property('valid_input_chars')
         self._valid_input_chars = []
@@ -1152,13 +1196,13 @@ class tabengine (IBus.Engine):
             self._full_width_punct[1] = self.db.get_ime_property('def_full_width_punct').lower() == u'true'
         # some properties we will involved, Property is taken from scim.
         #self._setup_property = Property ("setup", _("Setup"))
-        
+
         self._auto_commit = variant_to_value(self._config.get_value(
                 self._config_section,
                 "AutoCommit"))
         if self._auto_commit == None:
             self._auto_commit = self.db.get_ime_property('auto_commit').lower() == u'true'
-        
+
         self._auto_select = variant_to_value(self._config.get_value(
                 self._config_section,
                 "AutoSelect"))
@@ -1167,7 +1211,7 @@ class tabengine (IBus.Engine):
                 self._auto_select = self.db.get_ime_property('auto_select').lower() == u'true'
             else:
                 self._auto_select = False
-        
+
         self._always_show_lookup = variant_to_value(self._config.get_value(
                 self._config_section,
                 "AlwaysShowLookup"))
@@ -1176,20 +1220,9 @@ class tabengine (IBus.Engine):
                 self._always_show_lookup = self.db.get_ime_property('always_show_lookup').lower() == u'true'
             else:
                 self._always_show_lookup = True
-        
+
         # the commit phrases length
         self._len_list = [0]
-        # connect to SpeedMeter
-        #try:
-        #    bus = dbus.SessionBus()
-        #    user = os.path.basename( os.path.expanduser('~') )
-        #    self._sm_bus = bus.get_object ("org.ibus.table.SpeedMeter.%s"\
-        #            % user, "/org/ibus/table/SpeedMeter")
-        #    self._sm =  dbus.Interface(self._sm_bus,\
-        #            "org.ibus.table.SpeedMeter") 
-        #except:
-        #    self._sm = None
-        #self._sm_on = False
         self._on = False
         self._save_user_count = 0
         self._save_user_start = time.time()
@@ -1206,7 +1239,7 @@ class tabengine (IBus.Engine):
         self._double_quotation_state = False
         self._single_quotation_state = False
         self._prev_key = None
-        #self._editor._onechar = False    
+        #self._editor._onechar = False
         self._init_properties ()
         self._update_ui ()
 
@@ -1223,35 +1256,35 @@ class tabengine (IBus.Engine):
 
     def _init_properties (self):
         self.properties= IBus.PropList ()
-        
+
         self._status_property = self._new_property(u'status')
         self.properties.append(self._status_property)
-        
+
         if self.db._is_chinese:
             self._cmode_property = self._new_property(u'cmode')
             self.properties.append(self._cmode_property)
-            
+
         self._letter_property = self._new_property(u'letter')
         self.properties.append(self._letter_property)
-        
+
         self._punct_property = self._new_property(u'punct')
         self.properties.append(self._punct_property)
-        
+
         self._py_property = self._new_property('py_mode')
         self.properties.append(self._py_property)
-        
+
         self._onechar_property = self._new_property(u'onechar')
         self.properties.append(self._onechar_property)
-        
+
         self._auto_commit_property = self._new_property(u'acommit')
         self.properties.append(self._auto_commit_property)
-        
+
         self._always_show_lookup_property = self._new_property(u'always_show_lookup')
         self.properties.append(self._always_show_lookup_property)
-        
+
         self.register_properties (self.properties)
         self._refresh_properties ()
-                
+
     def _new_property (self, key):
         '''Creates new IBus.Property and returns'''
         return IBus.Property(key=key,
@@ -1298,7 +1331,7 @@ class tabengine (IBus.Engine):
         self.update_property(self._onechar_property)
 
         if self._auto_commit:
-            self._set_property(self._auto_commit_property, 'acommit.svg', _('Direct Commit Mode'), _('Switch to normal commit mode, which use space to commit - Ctrl-/')) 
+            self._set_property(self._auto_commit_property, 'acommit.svg', _('Direct Commit Mode'), _('Switch to normal commit mode, which use space to commit - Ctrl-/'))
         else:
             self._set_property(self._auto_commit_property, 'ncommit.svg', _('Normal Commit Mode'), _('Switch to direct commit mode - Ctrl-/'))
         self.update_property(self._auto_commit_property)
@@ -1323,9 +1356,13 @@ class tabengine (IBus.Engine):
             self.update_property(self._cmode_property)
 
     def _set_property (self, property, icon, label, tooltip):
+        if type(label) != type(u''):
+            label = label.decode('utf-8')
+        if type(tooltip) != type(u''):
+            tooltip = tooltip.decode('utf-8')
         property.set_icon ( u'%s%s' % (self._icon_dir, icon ) )
-        property.set_label (IBus.Text.new_from_string(unicode(label)))
-        property.set_tooltip (IBus.Text.new_from_string(unicode(tooltip)))
+        property.set_label(IBus.Text.new_from_string(label))
+        property.set_tooltip(IBus.Text.new_from_string(tooltip))
 
     def _change_mode (self):
         '''Shift input mode, TAB -> EN -> TAB
@@ -1384,7 +1421,7 @@ class tabengine (IBus.Engine):
     #    elif property == "setup":
             # Need implementation
     #        self.start_helper ("96c07b6f-0c3d-4403-ab57-908dd9b8d513")
-        # at last invoke default method 
+        # at last invoke default method
 
     def _update_preedit (self):
         '''Update Preedit String in UI'''
@@ -1483,7 +1520,7 @@ class tabengine (IBus.Engine):
         if self._save_user_count >= 0:
             now = time.time()
             time_delta = now - self._save_user_start
-            if (self._save_user_count > self._save_user_count_max or 
+            if (self._save_user_count > self._save_user_count_max or
                     time_delta >= self._save_user_timeout):
                 self.db.sync_usrdb()
                 self._save_user_count = 0
@@ -1494,17 +1531,20 @@ class tabengine (IBus.Engine):
         self._editor.clear ()
         self._update_ui ()
         super(tabengine,self).commit_text(IBus.Text.new_from_string(string))
-        self._prev_char = string[-1]
+        if len(string) > 0:
+            self._prev_char = string[-1]
+        else:
+            self._prev_char = None
 
     def _convert_to_full_width (self, c):
         '''convert half width character to full width'''
-        
-        # This function picks up punctuations that are not comply to the 
+
+        # This function picks up punctuations that are not comply to the
         # unicode convesion formula in unichar_half_to_full (c).
         # For ".", "\"", "'"; there are even variations under specific
         # cases. This function should be more abstracted by extracting
         # that to another handling function later on.
-        special_punct_dict = {u"<": u"\u300a", 
+        special_punct_dict = {u"<": u"\u300a",
                                u">": u"\u300b",
                                u"[": u"\u300c",
                                u"]": u"\u300d",
@@ -1515,14 +1555,14 @@ class tabengine (IBus.Engine):
                                u"_": u"\u2014\u2014",
                                u"$": u"\uffe5"
                                }
-        
+
         # special puncts w/o further conditions
         if c in special_punct_dict.keys():
             if c in [u"\\", u"^", u"_", u"$"]:
                 return special_punct_dict[c]
             elif self._mode:
                 return special_punct_dict[c]
-        
+
         # special puncts w/ further conditions
         if c == u".":
             if self._prev_char and self._prev_char.isdigit () \
@@ -1542,7 +1582,7 @@ class tabengine (IBus.Engine):
                 return u"\u2018"
             else:
                 return u"\u2019"
-            
+
         return unichar_half_to_full (c)
 
     def _match_hotkey (self, key, code, mask):
@@ -1601,19 +1641,19 @@ class tabengine (IBus.Engine):
 
         if key.code >= 128:
             return False
-        # we ignore all hotkeys here    
+        # we ignore all hotkeys here
         if key.mask & (IBus.ModifierType.CONTROL_MASK|IBus.ModifierType.MOD1_MASK):
             return False
 
-        cond_letter_translate = lambda (c): \
+        cond_letter_translate = lambda c: \
             self._convert_to_full_width (c) if self._full_width_letter [
                     self._mode] else c
-        cond_punct_translate = lambda (c): \
+        cond_punct_translate = lambda c: \
             self._convert_to_full_width (c) if self._full_width_punct [
                     self._mode] else c
 
-        keychar = unichr (key.code)
-        if ascii.ispunct (key.code):
+        keychar = IBus.keyval_to_unicode(key.code)
+        if ascii_ispunct(key.code):
             trans_char = cond_punct_translate (keychar)
         else:
             trans_char = cond_letter_translate (keychar)
@@ -1629,9 +1669,9 @@ class tabengine (IBus.Engine):
 
     def _table_mode_process_key_event (self, key):
         '''Xingma Mode Process Key Event'''
-        cond_letter_translate = lambda (c): \
+        cond_letter_translate = lambda c: \
             self._convert_to_full_width (c) if self._full_width_letter [self._mode] else c
-        cond_punct_translate = lambda (c): \
+        cond_punct_translate = lambda c: \
             self._convert_to_full_width (c) if self._full_width_punct [self._mode] else c
 
         # We have to process the pinyin mode change key event here,
@@ -1641,9 +1681,9 @@ class tabengine (IBus.Engine):
             self._refresh_properties ()
             self._update_ui ()
             return res
-        # process commit to preedit    
+        # process commit to preedit
         if self._match_hotkey (key, IBus.KEY_Shift_R, IBus.ModifierType.SHIFT_MASK | IBus.ModifierType.RELEASE_MASK) or self._match_hotkey (key, IBus.KEY_Shift_L, IBus.ModifierType.SHIFT_MASK | IBus.ModifierType.RELEASE_MASK):
-            res = self._editor.l_shift ()
+            res = self._editor.commit_to_preedit()
             self._update_ui ()
             return res
 
@@ -1667,20 +1707,11 @@ class tabengine (IBus.Engine):
             self.do_property_activate ( u"cmode" )
             return True
 
-        # Match speedmeter shift
-        #if self._match_hotkey (key, IBus.KEY_apostrophe, IBus.ModifierType.CONTROL_MASK):
-        #    self._sm_on = not self._sm_on
-        #    if self._sm_on:
-        #        self._sm.Show ()
-        #    else:
-        #        self._sm.Hide ()
-        #    return True
-        # Ignore key release event now :)
         if key.mask & IBus.ModifierType.RELEASE_MASK:
             return True
 
         #
-        keychar = unichr (key.code)
+        keychar = IBus.keyval_to_unicode(key.code)
 
         if self._editor.is_empty ():
             # we have not input anything
@@ -1690,7 +1721,7 @@ class tabengine (IBus.Engine):
                             (IBus.ModifierType.MOD1_MASK |
                                 IBus.ModifierType.CONTROL_MASK)):
                 # Input untranslated ascii char directly
-                if ascii.ispunct (key.code):
+                if ascii_ispunct(key.code):
                     trans_char = cond_punct_translate (keychar)
                 else:
                     trans_char = cond_letter_translate (keychar)
@@ -1715,7 +1746,7 @@ class tabengine (IBus.Engine):
                 self._editor.commit_to_preedit ()
                 commit_string = self._editor.get_preedit_strings () + os.linesep
             else:
-                commit_string = self._editor.get_all_input_strings ()    
+                commit_string = self._editor.get_all_input_strings ()
             self.commit_string (commit_string)
             return True
 
@@ -1788,7 +1819,7 @@ class tabengine (IBus.Engine):
             return res
 
         elif key.code == IBus.KEY_space:
-            # if space is one of "page_down_keys" change to next page 
+            # if space is one of "page_down_keys" change to next page
             #  on lookup page
             if IBus.KEY_space in self._page_down_keys:
                 res = self._editor.page_down()
@@ -1843,7 +1874,7 @@ class tabengine (IBus.Engine):
                     self._editor.pop_input ()
                     reprocess_last_key=True
                     key_char=''
-                elif ascii.ispunct (key.code):
+                elif ascii_ispunct(key.code):
                     key_char = cond_punct_translate (keychar)
                 else:
                     key_char = cond_letter_translate (keychar)
@@ -1910,7 +1941,7 @@ class tabengine (IBus.Engine):
             self._editor.clear ()
             if py_mode:
                 self._refresh_properties ()
-            if ascii.ispunct (key.code):
+            if ascii_ispunct(key.code):
                 self.commit_string ( commit_string + cond_punct_translate(keychar))
             else:
                 self.commit_string ( commit_string + cond_letter_translate(keychar))
@@ -1966,16 +1997,21 @@ class tabengine (IBus.Engine):
         # effect of comparing the dconf sections case insentively
         # in some locales, it would fail for example if Turkish
         # locale (tr_TR.UTF-8) is set.
-        if type(section) == type(u''):
-            # translate() does not work in Python’s internal Unicode type
-            section = section.encode('utf-8')
-        return re.sub(r'[_:]', r'-', section).translate(
-            string.maketrans(string.ascii_uppercase, string.ascii_lowercase ))
+        if sys.version_info >= (3,0,0): # Python3
+            return re.sub(r'[_:]', r'-', section).translate(
+                ''.maketrans(
+                string.ascii_uppercase,
+                string.ascii_lowercase))
+        else: # Python2
+            return re.sub(r'[_:]', r'-', section).translate(
+                string.maketrans(
+                string.ascii_uppercase,
+                string.ascii_lowercase).decode('ISO-8859-1'))
 
     def config_value_changed_cb (self, config, section, name, value):
         if self.config_section_normalize(self._config_section) != self.config_section_normalize(section):
             return
-        print "config value %(n)s for engine %(en)s changed" %{'n': name, 'en': self._name}
+        print("config value %(n)s for engine %(en)s changed" %{'n': name, 'en': self._name})
         value = variant_to_value(value)
         if name == u'autoselect':
             self._editor._auto_select = value
