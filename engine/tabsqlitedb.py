@@ -867,6 +867,52 @@ class tabsqlitedb:
             import traceback
             traceback.print_exc ()
 
+    def generate_sysdb_tabkeys(self, db):
+        if 'tabkeys' in self.get_columns_of_phrase_table(db):
+            return
+
+        tab_dict = {
+            'a':1, 'b':2, 'c':3, 'd':4, 'e':5,
+            'f':6, 'g':7, 'h':8, 'i':9, 'j':10,
+            'k':11, 'l':12, 'm':13, 'n':14, 'o':15,
+            'p':16, 'q':17, 'r':18, 's':19, 't':20,
+            'u':21, 'v':22, 'w':23, 'x':24, 'y':25,
+            'z':26, "'":27, ';':28, '`':29, '~':30,
+            '!':31, '@':32, '#':33, '$':34, '%':35,
+            '^':36, '&':37, '*':38, '(':39, ')':40,
+            '-':41, '_':42, '=':43, '+':44, '[':45,
+            ']':46, '{':47, '}':48, '|':49, '/':50,
+            ':':51, '"':52, '<':53, '>':54, ',':55,
+            '.':56, '?':57, '\\':58, 'A':59, 'B':60,
+            'C':61, 'D':62, 'E':63, 'F':64, 'G':65,
+            'H':66, 'I':67, 'J':68, 'K':69, 'L':70,
+            'M':71, 'N':72, 'O':73, 'P':74, 'Q':75,
+            'R':76, 'S':77, 'T':78, 'U':79, 'V':80,
+            'W':81, 'X':82, 'Y':83, 'Z':84, '0':85,
+            '1':86, '2':87, '3':88, '4':89, '5':90,
+            '6':91, '7':92, '8':93, '9':94,
+            # for translit
+            u'ä':95,
+            u'ö':96,
+            u'ü':97,
+            u'Ä':98,
+            u'Ö':99,
+            u'Ü':100
+        }
+        id_tab_dict = {}
+        for key, id in tab_dict.items():
+            id_tab_dict[id] = key
+
+        def concat_chars(*args):
+            chars = [id_tab_dict.get(id, '') for id in args]
+            return ''.join(chars)
+
+        db.execute('ALTER TABLE phrases ADD COLUMN tabkeys;')
+        db.commit()
+        db.create_function('concat_chars', 5, concat_chars)
+        db.execute('UPDATE phrases set tabkeys = concat_chars(m0,m1,m2,m3,m4);')
+        db.commit()
+
     def init_user_db(self,db_file):
         if not path.exists(db_file):
             db = sqlite3.connect(db_file)
@@ -894,12 +940,12 @@ class tabsqlitedb:
         except:
             return None
 
-    def get_number_of_columns_of_phrase_table(self, db_file):
+    def get_columns_of_phrase_table(self, db):
         '''
-        Get the number of columns in the 'phrases' table in
+        Get the column names of the 'phrases' table in
         the database in db_file.
 
-        Determines the number of columns by parsing this:
+        Determined by parsing this:
 
         sqlite> select sql from sqlite_master where name='phrases';
         CREATE TABLE phrases
@@ -910,10 +956,7 @@ class tabsqlitedb:
         This result could be on a single line, as above, or on multiple
         lines.
         '''
-        if not path.exists (db_file):
-            return 0
         try:
-            db = sqlite3.connect (db_file)
             tp_res = db.execute(
                 "select sql from sqlite_master where name='phrases';"
             ).fetchall()
@@ -923,9 +966,23 @@ class tabsqlitedb:
             res = re.match(r'.*\((.*)\)', str)
             if res:
                 tp = res.group(1).split(',')
-                return len(tp)
+                names = [column.strip().split(' ')[0] for column in tp]
+                return names
             else:
-                return 0
+                return []
+        except:
+            return []
+
+    def get_number_of_columns_of_phrase_table(self, db_file):
+        '''
+        Get the number of columns in the 'phrases' table in
+        the database in db_file.
+        '''
+        if not path.exists(db_file):
+            return 0
+        try:
+            db = sqlite3.connect(db_file)
+            return len(self.get_columns_of_phrase_table(db))
         except:
             return 0
 
