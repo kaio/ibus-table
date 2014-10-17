@@ -867,8 +867,14 @@ class tabsqlitedb:
             import traceback
             traceback.print_exc ()
 
-    def generate_sysdb_tabkeys(self, db):
-        if 'tabkeys' in self.get_columns_of_phrase_table(db):
+    def generate_sysdb_tabkeys(self):
+        db = self.db
+        if 'tabkeys' not in self.get_columns_of_phrase_table(db):
+            db.execute('ALTER TABLE phrases ADD COLUMN tabkeys TEXT;')
+            db.commit()
+
+        result = db.execute('SELECT count(*) FROM phrases WHERE ifnull(tabkeys, "") = ""').fetchall()
+        if result and result[0][0] == 0:
             return
 
         tab_dict = {
@@ -907,8 +913,6 @@ class tabsqlitedb:
             chars = [id_tab_dict.get(id, '') for id in args]
             return ''.join(chars)
 
-        db.execute('ALTER TABLE phrases ADD COLUMN tabkeys;')
-        db.commit()
         db.create_function('concat_chars', 5, concat_chars)
         db.execute('UPDATE phrases set tabkeys = concat_chars(m0,m1,m2,m3,m4);')
         db.commit()
