@@ -37,7 +37,7 @@ engine_table_DATA = \
 	$(NULL)
 engine_tabledir = $(datadir)/ibus-table/engine
 
-bin_SCRIPTS = ibus-table-createdb 
+bin_SCRIPTS = ibus-table-createdb ibus-table-updatedb
 
 libexec_SCRIPTS = ibus-engine-table
 
@@ -46,6 +46,7 @@ enginedir = $(datadir)/ibus/component
 
 EXTRA_DIST = \
 	ibus-table-createdb.in \
+	ibus-table-updatedb.in \
 	ibus-engine-table.in \
 	table.xml.in \
 	$(SGML) \
@@ -57,6 +58,7 @@ CLEANFILES = \
 	*.pyo \
 	ibus-engine-table \
 	ibus-table-createdb \
+	ibus-table-updatedb \
 	table.xml \
 	$(NULL)
 

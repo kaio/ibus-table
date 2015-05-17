@@ -3,4 +3,5 @@ table.xml.in
 ibus-engine-table
 ibus-table-createdb
 ibus-table-createdb.1
+ibus-table-updatedb
 *.pyc
