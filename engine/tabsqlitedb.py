@@ -33,7 +33,6 @@ import sqlite3
 import uuid
 import time
 import re
-import ibus_table_location
 import chinese_variants
 
 debug_level = int(0)
@@ -257,6 +256,7 @@ class tabsqlitedb:
             return
 
         if user_db != ":memory:":
+            import ibus_table_location
             tables_path = path.join(ibus_table_location.data_home(),  "tables")
             if not path.isdir(tables_path):
                 old_tables_path = os.path.join(
