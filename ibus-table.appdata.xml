@@ -18,6 +18,7 @@
   <releases>
     <release version="1.9.17" date="2017-06-01" urgency="medium">
       <description>
+        <p>This new stable release includes these changes:</p>
         <ul>
           <li>
             Load .desktop file for ibus-setup-table correctly under
@@ -31,6 +32,7 @@
     </release>
     <release version="1.9.16" date="2017-01-17" urgency="medium">
       <description>
+        <p>This new stable release includes these changes:</p>
         <ul>
           <li>
             Avoid running initialization code of
@@ -45,6 +47,7 @@
     </release>
     <release version="1.9.15" date="2017-01-16" urgency="medium">
       <description>
+        <p>This new stable release includes these changes:
         <ul>
           <li>
             Update translations from zanata (ca, de, fr, uk updated)
@@ -56,10 +59,12 @@
             Point to new home-page in the “About” tab.
           </li>
         </ul>
+        </p>
       </description>
     </release>
     <release version="1.9.14" date="2016-08-24" urgency="medium">
       <description>
+        <p>This new stable release includes these changes:</p>
         <ul>
           <li>
             Fix bug in Unihan_Variants.txt, 乾 U+4E7E is both
@@ -81,16 +86,15 @@
     </release>
     <release version="1.9.13" date="2016-08-23" urgency="medium">
       <description>
-        <ul>
-          <li>
+        <p>
             When ignoring key release events, “False” should be
-            returned, not “True” (Resolves: rhbz#1369514)
-          </li>
-        </ul>
+            returned, not “True” (Resolves: rhbz#1369514).
+        </p>
       </description>
     </release>
   </releases>
-  <project_license>GPL-2.1+</project_license>
+  <project_license>LGPL-2.1+</project_license>
   <developer_name>Mike FABIAN</developer_name>
   <update_contact>mfabian@redhat.com</update_contact>
+  <translation type="gettext">ibus-table</translation>
 </component>

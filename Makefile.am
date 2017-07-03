@@ -46,7 +46,7 @@ appdata_DATA = \
        ibus-table.appdata.xml \
        $(NULL)
 
-appdatadir = $(datadir)/appdata
+appdatadir = $(datadir)/metainfo
 
 
 AUX_DIST = \
