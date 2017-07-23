@@ -893,16 +893,22 @@ class tabsqlitedb:
             # for some users really like to select only single characters
             one_char_condition = ' AND length(phrase)=1 '
 
-        sqlstr = '''
-        SELECT tabkeys, phrase, freq, user_freq FROM
-        (
+        if self.user_can_define_phrase or self.dynamic_adjust:
+            sqlstr = '''
+            SELECT tabkeys, phrase, freq, user_freq FROM
+            (
+                SELECT tabkeys, phrase, freq, user_freq FROM main.phrases
+                WHERE tabkeys LIKE :tabkeys ESCAPE :escapechar %(one_char_condition)s
+                UNION ALL
+                SELECT tabkeys, phrase, freq, user_freq FROM user_db.phrases
+                WHERE tabkeys LIKE :tabkeys ESCAPE :escapechar %(one_char_condition)s
+            )
+            ''' % {'one_char_condition': one_char_condition}
+        else:
+            sqlstr = '''
             SELECT tabkeys, phrase, freq, user_freq FROM main.phrases
             WHERE tabkeys LIKE :tabkeys ESCAPE :escapechar %(one_char_condition)s
-            UNION ALL
-            SELECT tabkeys, phrase, freq, user_freq FROM user_db.phrases
-            WHERE tabkeys LIKE :tabkeys ESCAPE :escapechar %(one_char_condition)s
-        )
-        ''' % {'one_char_condition': one_char_condition}
+            ''' % {'one_char_condition': one_char_condition}
         escapechar = '☺'
         for c in '!@#':
             if c not in [single_wildcard_char, multi_wildcard_char]:
