@@ -2810,6 +2810,7 @@ class tabengine (IBus.Engine):
             return
         if name == u'chinesemode':
             self.set_chinese_mode(value)
+            self.db.reset_phrases_cache()
             return
         if name == u'endeffullwidthletter':
             self.set_letter_width(value, input_mode=0)
@@ -2846,6 +2847,7 @@ class tabengine (IBus.Engine):
             return
         if name == u'onechar':
             self.set_onechar_mode(value)
+            self.db.reset_phrases_cache()
             return
         if name == u'tabdeffullwidthletter':
             self.set_letter_width(value, input_mode=1)
@@ -2877,12 +2879,15 @@ class tabengine (IBus.Engine):
         if name == u'singlewildcardchar':
             self._single_wildcard_char = value
             self._editor._single_wildcard_char = value
+            self.db.reset_phrases_cache()
             return
         if name == u'multiwildcardchar':
             self._multi_wildcard_char = value
             self._editor._multi_wildcard_char = value
+            self.db.reset_phrases_cache()
             return
         if name == u'autowildcard':
             self._auto_wildcard = value
             self._editor._auto_wildcard = value
+            self.db.reset_phrases_cache()
             return
