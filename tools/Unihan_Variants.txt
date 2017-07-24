@@ -7188,7 +7188,7 @@ U+8449	kSimplifiedVariant	U+53F6
 U+8449	kZVariant	U+F96E
 U+8452	kSimplifiedVariant	U+836D
 U+8457	kSemanticVariant	U+7740
-U+8457	kSimplifiedVariant	U+7740
+U+8457	kSimplifiedVariant	U+8457 U+7740
 U+8457	kSpecializedSemanticVariant	U+7740<kFenn U+87AB<kFenn
 U+845A	kSemanticVariant	U+6939<kFenn
 U+8462	kSemanticVariant	U+76D6<kFenn U+84CB<kLau,kMeyerWempe
