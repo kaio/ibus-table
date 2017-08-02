@@ -135,7 +135,7 @@ class tabsqlitedb:
         self.old_phrases = []
         self.filename = filename
         self._user_db = user_db
-        self._phrases_cache = None
+        self.reset_phrases_cache()
 
         if create_database or os.path.isfile(self.filename):
             self.db = sqlite3.connect(self.filename)
@@ -249,9 +249,6 @@ class tabsqlitedb:
         self.rules = self.get_rules ()
         self.possible_tabkeys_lengths = self.get_possible_tabkeys_lengths()
         self.startchars = self.get_start_chars ()
-
-        if not self.user_can_define_phrase and not self.dynamic_adjust:
-            self._phrases_cache = {}
 
         if not user_db or create_database:
             # No user database requested or we are
@@ -451,6 +448,7 @@ class tabsqlitedb:
             self.db.execute(sqlstr, sqlargs)
             if commit:
                 self.db.commit()
+            self.invalidate_phrases_cache(tabkeys)
         except:
             import traceback
             traceback.print_exc()
@@ -465,8 +463,12 @@ class tabsqlitedb:
         self.db.execute('PRAGMA wal_checkpoint;')
 
     def reset_phrases_cache (self):
-        if self._phrases_cache != None:
-            self._phrases_cache = {}
+        self._phrases_cache = {}
+
+    def invalidate_phrases_cache (self, tabkeys=u''):
+        for i in range(1, self._mlen + 1):
+            if self._phrases_cache.get(tabkeys[0:i]):
+                self._phrases_cache.pop(tabkeys[0:i])
 
     def is_chinese (self):
         __lang = self.ime_properties.get('languages')
@@ -565,11 +567,6 @@ class tabsqlitedb:
                 + 'is it a outdated database?')
             self.user_can_define_phrase = False
         self.rules = self.get_rules()
-
-        if self.user_can_define_phrase or self.dynamic_adjust:
-            self._phrases_cache = None
-        else:
-            self._phrases_cache = {}
 
     def get_rules (self):
         '''Get phrase construct rules'''
@@ -679,6 +676,7 @@ class tabsqlitedb:
                 'phrase': phrase,
                 'freq': freq,
                 'user_freq': user_freq})
+            self.invalidate_phrases_cache(tabkeys)
         self.db.executemany(insert_sqlstr, insert_sqlargs)
         self.db.commit()
         self.db.execute('PRAGMA wal_checkpoint;')
@@ -733,6 +731,7 @@ class tabsqlitedb:
             self.db.execute (insert_sqlstr, insert_sqlargs)
             if commit:
                 self.db.commit()
+            self.invalidate_phrases_cache(tabkeys)
         except:
             import traceback
             traceback.print_exc()
@@ -902,10 +901,9 @@ class tabsqlitedb:
         if not tabkeys:
             return []
         # query phrases cache first
-        if self._phrases_cache != None:
-            best = self._phrases_cache.get(tabkeys)
-            if best:
-                return best
+        best = self._phrases_cache.get(tabkeys)
+        if best:
+            return best
         one_char_condition = ''
         if onechar:
             # for some users really like to select only single characters
@@ -980,8 +978,7 @@ class tabsqlitedb:
             chinese_mode=chinese_mode)
         if debug_level > 1:
             sys.stderr.write("select_words() best=%s\n" %repr(best))
-        if self._phrases_cache != None:
-            self._phrases_cache[tabkeys] = best
+        self._phrases_cache[tabkeys] = best
         return best
 
     def select_chinese_characters_by_pinyin(
@@ -1361,6 +1358,7 @@ class tabsqlitedb:
         self.db.execute(delete_sqlstr, delete_sqlargs)
         if commit:
             self.db.commit()
+        self.invalidate_phrases_cache(tabkeys)
 
     def extract_user_phrases(
             self, database_file='', old_database_version='0.0'):
