@@ -219,6 +219,7 @@ class tabsqlitedb:
             default_properties=self._default_ime_attributes)
         # shared variables in this class:
         self._mlen = int(self.ime_properties.get("max_key_length"))
+        self._snum = self.ime_properties.get("serial_number")
         self._is_chinese = self.is_chinese()
         self._is_cjk = self.is_cjk()
         self.user_can_define_phrase = self.ime_properties.get(
@@ -250,6 +251,12 @@ class tabsqlitedb:
         self.possible_tabkeys_lengths = self.get_possible_tabkeys_lengths()
         self.startchars = self.get_start_chars ()
 
+        import ibus_table_location
+        tables_path = path.join(ibus_table_location.data_home(),  "tables")
+        cache_name = os.path.basename(self.filename).replace('.db', '.cache')
+        self.cache_path = path.join(tables_path, cache_name)
+        self.load_phrases_cache()
+
         if not user_db or create_database:
             # No user database requested or we are
             # just creating the system database and
@@ -268,8 +275,6 @@ class tabsqlitedb:
             #
             # “HOME=/foobar ibus-table-createdb” should not fail if
             # “/foobar” is not writeable.
-            import ibus_table_location
-            tables_path = path.join(ibus_table_location.data_home(),  "tables")
             if not path.isdir(tables_path):
                 old_tables_path = os.path.join(
                     os.getenv('HOME'), '.ibus/tables')
@@ -457,6 +462,7 @@ class tabsqlitedb:
         '''
         Trigger a checkpoint operation.
         '''
+        self.save_phrases_cache()
         if self._user_db is None:
             return
         self.db.commit()
@@ -469,6 +475,28 @@ class tabsqlitedb:
         for i in range(1, self._mlen + 1):
             if self._phrases_cache.get(tabkeys[0:i]):
                 self._phrases_cache.pop(tabkeys[0:i])
+
+    def load_phrases_cache(self):
+        try:
+            import json
+            self._phrases_cache = json.load(open(self.cache_path, 'r'))
+            snum = self._phrases_cache.get('serial_number')
+            if not snum or (snum != self._snum):
+                self._phrases_cache = {}
+        except:
+            pass
+
+    def save_phrases_cache(self):
+        try:
+            import json
+            self._phrases_cache['serial_number'] = self._snum
+            _cache_path = self.cache_path + '.tmp'
+            # The system may be break stores on rebooting, so
+            # dump to temporary file and then replace it.
+            json.dump(self._phrases_cache, open(_cache_path, 'w'))
+            os.replace(_cache_path, self.cache_path);
+        except:
+            pass
 
     def is_chinese (self):
         __lang = self.ime_properties.get('languages')
