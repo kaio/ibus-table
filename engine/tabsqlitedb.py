@@ -220,7 +220,7 @@ class TabSqliteDb:
             SELECT val FROM main.ime WHERE attr = :attr;'''
             insert_sqlstr = '''
             INSERT INTO main.ime (attr, val) VALUES (:attr, :val);'''
-            for attr in self._default_ime_attributes:
+            for attr in sorted(self._default_ime_attributes):
                 sqlargs = {
                     'attr': attr,
                     'val': self._default_ime_attributes[attr]
