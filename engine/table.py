@@ -2958,7 +2958,8 @@ class TabEngine(IBus.EngineSimple):
         :rtype: Boolean
         '''
         if not self.is_empty():
-            return False
+            commit_string = self.get_preedit_tabkeys_complete()
+            self.commit_string(commit_string)
         self.set_input_mode(int(not self._input_mode))
         return True
 
