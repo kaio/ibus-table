@@ -400,6 +400,7 @@ class TabEngine(IBus.EngineSimple):
         # self._prefix: the previous commit character or phrase
         self._prefix = u''
         self._py_mode = False
+        # sugguestion mode
         self._sg_mode = False
         self._sg_mode_active = False
 
@@ -1404,9 +1405,11 @@ class TabEngine(IBus.EngineSimple):
         self._lookup_table.append_candidate(text)
         self._lookup_table.set_cursor_visible(True)
 
-    def update_candidates(self):
+    def update_candidates(self, force=False):
         '''
         Searches for candidates and updates the lookuptable.
+
+        @force: Force update candidates even if no change to input
 
         Returns “True” if candidates were found and “False” if not.
 
@@ -1428,12 +1431,9 @@ class TabEngine(IBus.EngineSimple):
                 self._candidates,
                 self.database.startchars,
                 self._strings)
-        if (not self._sg_mode_active
-            and
-            self._chars_valid == self._chars_valid_update_candidates_last
-                and
-                self._chars_invalid
-                == self._chars_invalid_update_candidates_last):
+        if (not force and not self._sg_mode_active
+            and self._chars_valid == self._chars_valid_update_candidates_last
+            and self._chars_invalid == self._chars_invalid_update_candidates_last):
             # The input did not change since we came here last, do
             # nothing and leave candidates and lookup table unchanged:
             return bool(self._candidates)
@@ -3069,6 +3069,10 @@ class TabEngine(IBus.EngineSimple):
         if not self.database._is_cjk:
             return False
         self.set_onechar_mode(not self._onechar)
+
+        if not self.is_empty():
+            self.update_candidates(True)
+            self._update_ui()
         return True
 
     def _command_toggle_autocommit_mode(self):
@@ -3091,6 +3095,10 @@ class TabEngine(IBus.EngineSimple):
         if not self.database._is_chinese:
             return False
         self.set_chinese_mode((self._chinese_mode+1) % 5)
+
+        if not self.is_empty():
+            self.update_candidates(True)
+            self._update_ui()
         return True
 
     def _command_commit(self):
