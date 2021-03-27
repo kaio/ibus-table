@@ -1192,26 +1192,25 @@ class TabEngine(IBus.EngineSimple):
         if not tabkeys or not phrase:
             return
 
-        regexp = self._chars_valid
-        if self._multi_wildcard_char:
-            regexp = regexp.replace(
-                self._multi_wildcard_char, '_multi_wildchard_char_')
-        if self._single_wildcard_char:
-            regexp = regexp.replace(
-                self._single_wildcard_char, '_single_wildchard_char_')
-        regexp = re.escape(regexp)
-        regexp = regexp.replace('_multi_wildchard_char_', '.*')
-        regexp = regexp.replace('_single_wildchard_char_', '.?')
-        match = re.match(r'^'+regexp, tabkeys)
-        if match:
-            remaining_tabkeys = tabkeys[match.end():]
-        else:
-             # This should never happen! For the candidates
-             # added to the lookup table here, a match has
-             # been found for self._chars_valid in the database.
-             # In that case, the above regular expression should
-             # match as well.
+        mwild = self._multi_wildcard_char
+        swild = self._single_wildcard_char
+        if ((mwild and mwild in self._chars_valid)
+                or (swild and swild in self._chars_valid)):
+            # show all tabkeys if wildcard in tabkeys
             remaining_tabkeys = tabkeys
+        else:
+            regexp = self._chars_valid
+            regexp = re.escape(regexp)
+            match = re.match(r'^' + regexp, tabkeys)
+            if match:
+                remaining_tabkeys = tabkeys[match.end():]
+            else:
+                # This should never happen! For the candidates
+                # added to the lookup table here, a match has
+                # been found for self._chars_valid in the database.
+                # In that case, the above regular expression should
+                # match as well.
+                remaining_tabkeys = tabkeys
         if DEBUG_LEVEL > 1:
             LOGGER.debug(
                 'remaining_tabkeys=%s '
