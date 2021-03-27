@@ -1029,6 +1029,29 @@ class SetupUI(Gtk.Window):
         self._multi_wildcard_char_entry.connect(
             'notify::text', self.on_multi_wildcard_char_entry)
 
+        self._use_dark_theme_label = Gtk.Label()
+        self._use_dark_theme_label.set_text(
+            # Translators: A combobox to choose whether
+            # the color scheme for a dark theme should be used.
+            _('Use dark theme:'))
+        self._use_dark_theme_label.set_tooltip_text(
+            # Translators: A tooltip for the label of the combobox to
+            # choose whether the color scheme for a dark theme should
+            # be used.
+            _('If yes, the color scheme for a dark theme will be used.'))
+        self._use_dark_theme_label.set_xalign(0)
+        self._options_details_grid.attach(
+            self._use_dark_theme_label, 0, 10, 1, 1)
+
+        self._use_dark_theme_combobox = Gtk.ComboBoxText()
+        self._use_dark_theme_combobox.append("no", _('No'))
+        self._use_dark_theme_combobox.append("yes", _('Yes'))
+        self.set_dark_theme(self._settings_dict['darktheme']['user'], False)
+        self._options_details_grid.attach(
+            self._use_dark_theme_combobox, 1, 10, 1, 1)
+        self._use_dark_theme_combobox.connect(
+            "changed", self.on_use_dark_theme_combobox_changed)
+
         self._debug_level_label = Gtk.Label()
         self._debug_level_label.set_text(
             # Translators: When the debug level is greater than 0,
@@ -1043,7 +1066,7 @@ class SetupUI(Gtk.Window):
               'may also be shown graphically.'))
         self._debug_level_label.set_xalign(0)
         self._options_details_grid.attach(
-            self._debug_level_label, 0, 10, 1, 1)
+            self._debug_level_label, 0, 11, 1, 1)
 
         self._debug_level_adjustment = Gtk.SpinButton()
         self._debug_level_adjustment.set_visible(True)
@@ -1051,7 +1074,7 @@ class SetupUI(Gtk.Window):
         self._debug_level_adjustment.set_increments(1.0, 1.0)
         self._debug_level_adjustment.set_range(0.0, 255.0)
         self._options_details_grid.attach(
-            self._debug_level_adjustment, 1, 10, 1, 1)
+            self._debug_level_adjustment, 1, 11, 1, 1)
         self._debug_level_adjustment.set_value(
             self._settings_dict['debuglevel']['user'])
         self._debug_level_adjustment.connect(
@@ -1198,6 +1221,16 @@ class SetupUI(Gtk.Window):
             'default': default_input_mode,
             'user': user_input_mode,
             'set_function': self.set_input_mode}
+
+        default_dark_theme = it_util.variant_to_value(
+            self._gsettings.get_default_value('darktheme'))
+        user_dark_theme = it_util.variant_to_value(
+            self._gsettings.get_value('darktheme'))
+
+        self._settings_dict['darktheme'] = {
+            'default': default_dark_theme,
+            'user': user_dark_theme,
+            'set_function': self.set_dark_theme}
 
         default_debug_level = it_util.variant_to_value(
             self._gsettings.get_default_value('debuglevel'))
@@ -1614,6 +1647,17 @@ class SetupUI(Gtk.Window):
             mode = model[tree_iter][1]
             self.set_always_show_lookup(
                 mode, update_gsettings=True)
+
+    def on_use_dark_theme_combobox_changed(self, widget):
+        '''
+        A change of the use color scheme for dark theme.
+        '''
+        active_id = widget.get_active_id()
+        if active_id == "yes":
+            use_dark_theme = True
+        else:
+            use_dark_theme = False
+        self.set_dark_theme(use_dark_theme, update_gsettings=True)
 
     def on_debug_level_adjustment_value_changed(self, _widget):
         '''
@@ -2406,6 +2450,33 @@ class SetupUI(Gtk.Window):
             for index, item in enumerate(self._input_mode_store):
                 if self._settings_dict['alwaysshowlookup']['user'] == item[1]:
                     self._always_show_lookup_combobox.set_active(index)
+
+    def set_dark_theme(
+            self, use_dark_theme=False, update_gsettings=True):
+        '''Sets the whether to use the color scheme for dark theme.
+
+        :param use_dark_theme: Whether to use the color scheme for dark theme
+        :type use_dark_theme: Boolean
+        :param update_gsettings: Whether to write the change to Gsettings.
+                                 Set this to False if this method is
+                                 called because the Gsettings key changed
+                                 to avoid endless loops when the Gsettings
+                                 key is changed twice in a short time.
+        :type update_gsettings: boolean
+        '''
+        LOGGER.info(
+            '(%s, update_gsettings = %s)', use_dark_theme, update_gsettings)
+        self._settings_dict['darktheme']['user'] = use_dark_theme
+        if update_gsettings:
+            self._gsettings.set_value(
+                'darktheme',
+                GLib.Variant.new_boolean(use_dark_theme))
+        else:
+            if use_dark_theme:
+                active_id = "yes"
+            else:
+                active_id = "no"
+            self._use_dark_theme_combobox.set_active_id(active_id)
 
     def set_debug_level(self, debug_level, update_gsettings=True):
         '''Sets the debug level
