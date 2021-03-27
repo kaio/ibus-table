@@ -116,6 +116,32 @@ def rgb(red, green, blue):
     '''Returns a 32bit ARGB value with the alpha value set to fully opaque'''
     return argb(255, red, green, blue)
 
+THEME = {
+        "dark": False,
+        "candidate_text": rgb(0x19, 0x73, 0xa2),
+        "system_phrase": rgb(0x00, 0x00, 0x00),
+        "user_phrase": rgb(0x77, 0x00, 0xc3),
+        "system_phrase_unused": rgb(0x00, 0x00, 0x00),
+        "debug_text": rgb(0x00, 0xff, 0x00),
+        "preedit_left": rgb(0xf9, 0x0f, 0x0f),  # bright red
+        "preedit_right": rgb(0x1e, 0xdc, 0x1a),  # light green
+        "preedit_invalid": rgb(0xff, 0x00, 0xff),  # magenta
+        "aux_text": rgb(0x95, 0x15, 0xb5),
+}
+
+THEME_DARK = {
+        "dark": True,
+        "candidate_text": rgb(0x7b, 0xc8, 0xf0),
+        "system_phrase": rgb(0xff, 0xff, 0xff),
+        "user_phrase": rgb(0xc0, 0x78, 0xee),
+        "system_phrase_unused": rgb(0xf0, 0xf0, 0xf0),
+        "debug_text": rgb(0x00, 0xff, 0x00),
+        "preedit_left": rgb(0xf9, 0xf9, 0x0f),
+        "preedit_right": rgb(0x1e, 0xdc, 0x1a),
+        "preedit_invalid": rgb(0xff, 0x00, 0xff),
+        "aux_text": rgb(0xdd, 0x70, 0xf9),
+}
+
 __HALF_FULL_TABLE = [
     (0x0020, 0x3000, 1),
     (0x0021, 0xFF01, 0x5E),
@@ -295,6 +321,7 @@ class TabEngine(IBus.EngineSimple):
         self.autocommit_mode_menu = {}
         self.autocommit_mode_properties = {}
         self._setup_property = None
+        self.theme = THEME
 
         self._keybindings = {}
         self._hotkeys = None
@@ -573,6 +600,11 @@ class TabEngine(IBus.EngineSimple):
         if not user_keybindings:
             user_keybindings = {}
         self.set_keybindings(user_keybindings, update_gsettings=False)
+
+        use_dark_theme = it_util.variant_to_value(
+            self._gsettings.get_user_value('darktheme'))
+        if use_dark_theme:
+            self.set_dark_theme(True, False)
 
         self._lookup_table = self.get_new_lookup_table()
 
@@ -1233,26 +1265,26 @@ class TabEngine(IBus.EngineSimple):
             candidate_text = candidate_text + u'   ' + table_code
         attrs = IBus.AttrList()
         attrs.append(IBus.attr_foreground_new(
-            rgb(0x19, 0x73, 0xa2), 0, len(candidate_text)))
+            self.theme["candidate_text"], 0, len(candidate_text)))
         if freq < 0:
             # this is a user defined phrase:
             attrs.append(
                 IBus.attr_foreground_new(
-                    rgb(0x77, 0x00, 0xc3), 0, len(phrase)))
+                    self.theme["user_phrase"], 0, len(phrase)))
         elif user_freq > 0:
             # this is a system phrase which has already been used by the user:
             attrs.append(IBus.attr_foreground_new(
-                rgb(0x00, 0x00, 0x00), 0, len(phrase)))
+                self.theme["system_phrase"], 0, len(phrase)))
         else:
             # this is a system phrase that has not been used yet:
             attrs.append(IBus.attr_foreground_new(
-                rgb(0x00, 0x00, 0x00), 0, len(phrase)))
+                self.theme["system_phrase_unused"], 0, len(phrase)))
 
         if DEBUG_LEVEL > 0:
             debug_text = u' ' + str(freq) + u' ' + str(user_freq)
             candidate_text += debug_text
             attrs.append(IBus.attr_foreground_new(
-                rgb(0x00, 0xff, 0x00),
+                self.theme["debug_text"],
                 len(candidate_text) - len(debug_text),
                 len(candidate_text)))
         text = IBus.Text.new_from_string(candidate_text)
@@ -1335,17 +1367,17 @@ class TabEngine(IBus.EngineSimple):
             candidate_text = candidate_text + u'   ' + table_code
         attrs = IBus.AttrList()
         attrs.append(IBus.attr_foreground_new(
-            rgb(0x19, 0x73, 0xa2), 0, len(candidate_text)))
+            self.theme["candidate_text"], 0, len(candidate_text)))
 
         # this is a pinyin character:
         attrs.append(IBus.attr_foreground_new(
-            rgb(0x00, 0x00, 0x00), 0, len(phrase)))
+            self.theme["system_phrase"], 0, len(phrase)))
 
         if DEBUG_LEVEL > 0:
             debug_text = u' ' + str(freq) + u' ' + str(user_freq)
             candidate_text += debug_text
             attrs.append(IBus.attr_foreground_new(
-                rgb(0x00, 0xff, 0x00),
+                self.theme["debug_text"],
                 len(candidate_text) - len(debug_text),
                 len(candidate_text)))
         text = IBus.Text.new_from_string(candidate_text)
@@ -1379,17 +1411,17 @@ class TabEngine(IBus.EngineSimple):
 
         attrs = IBus.AttrList()
         attrs.append(IBus.attr_foreground_new(
-            rgb(0x19, 0x73, 0xa2), 0, len(candidate_text)))
+            self.theme["candidate_text"], 0, len(candidate_text)))
 
         # this is a suggestion candidate:
         attrs.append(IBus.attr_foreground_new(
-            rgb(0x00, 0x00, 0x00), 0, len(phrase)))
+            self.theme["system_phrase"], 0, len(phrase)))
 
         if DEBUG_LEVEL > 0:
             debug_text = u' ' + str(freq) + u' ' + str(user_freq)
             candidate_text += debug_text
             attrs.append(IBus.attr_foreground_new(
-                rgb(0x00, 0xff, 0x00),
+                self.theme["debug_text"],
                 len(candidate_text) - len(debug_text),
                 len(candidate_text)))
         text = IBus.Text.new_from_string(candidate_text)
@@ -1972,6 +2004,25 @@ class TabEngine(IBus.EngineSimple):
             self.punctuation_width_menu,
             self._full_width_punct[self._input_mode])
         self.reset()
+
+    def set_dark_theme(self, use_dark_theme=False, update_gsettings=True):
+        '''
+        Set theme to dark theme on request
+
+        :type mode: Boolean
+        '''
+        if use_dark_theme:
+            theme = THEME_DARK
+        else:
+            theme = THEME
+        if theme is not self.theme:
+            self.theme = theme
+            self._update_ui()
+
+        if update_gsettings:
+            self._gsettings.set_value(
+                "darktheme",
+                GLib.Variant.new_boolean(use_dark_theme))
 
     def get_input_mode(self):
         '''
@@ -2718,9 +2769,9 @@ class TabEngine(IBus.EngineSimple):
             super(TabEngine, self).update_preedit_text(
                 IBus.Text.new_from_string(u''), 0, False)
             return
-        color_left = rgb(0xf9, 0x0f, 0x0f) # bright red
-        color_right = rgb(0x1e, 0xdc, 0x1a) # light green
-        color_invalid = rgb(0xff, 0x00, 0xff) # magenta
+        color_left = self.theme["preedit_left"] # bright red
+        color_right = self.theme["preedit_right"] # light green
+        color_invalid = self.theme["preedit_invalid"] # magenta
         attrs = IBus.AttrList()
         attrs.append(
             IBus.attr_foreground_new(
@@ -2770,7 +2821,7 @@ class TabEngine(IBus.EngineSimple):
         if aux_string:
             attrs = IBus.AttrList()
             attrs.append(IBus.attr_foreground_new(
-                rgb(0x95, 0x15, 0xb5), 0, len(aux_string)))
+                self.theme["aux_text"], 0, len(aux_string)))
             text = IBus.Text.new_from_string(aux_string)
             i = 0
             while attrs.get(i) is not None:
@@ -3983,6 +4034,8 @@ class TabEngine(IBus.EngineSimple):
              'kwargs': dict(input_mode=1)},
             'inputmode':
             {'set_function': self.set_input_mode, 'kwargs': {}},
+            'darktheme':
+            {'set_function': self.set_dark_theme, 'kwargs': {}},
         }
         if key in set_functions:
             set_function = set_functions[key]['set_function']
