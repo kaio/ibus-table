@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-
+from re import Pattern
 from typing import Tuple
 from typing import List
 from typing import Iterable
@@ -170,6 +170,31 @@ if not _OPTIONS.name:
         + 'contains the source of the IME!')
     sys.exit(2)
 
+
+class Section(object):
+    patt: Pattern
+    start: str
+    end: str
+    in_section: bool
+
+    def __init__(self, patt: Pattern, start: str, end: str):
+        self.patt = patt
+        self.start = start.strip()
+        self.end = end.strip()
+        self.in_section = False
+
+    def match(self, line: str) -> bool:
+        if self.in_section:
+            if self.end == line.strip():
+                self.in_section = False
+            elif self.patt.match(line):
+                return True
+        elif self.start == line.strip():
+            self.in_section = True
+
+        return False
+
+
 def main():
     def debug_print(message: str) -> None:
         if _OPTIONS.debug:
@@ -190,6 +215,7 @@ def main():
             f: Iterable[str]) -> Tuple[List[str], List[str], List[str]]:
         _attri: List[str] = []
         _table: List[str] = []
+        _table_extra: List[str] = []
         _gouci: List[str] = []
         patt_com = re.compile(r'^###.*')
         patt_blank = re.compile(r'^[ \t]*$')
@@ -197,13 +223,19 @@ def main():
         patt_table = re.compile(r'([^\t]+)\t([^\t]+)\t([0-9]+)(\t.*)?$')
         patt_gouci = re.compile(r' *[^\s]+ *\t *[^\s]+ *$')
 
+        sec_conf = Section(patt_conf, "BEGIN_DEFINITION", "END_DEFINITION")
+        sec_table = Section(patt_table, "BEGIN_TABLE", "END_TABLE")
+        sec_table_extra = Section(patt_table, "BEGIN_TABLE_EXTRA", "END_TABLE_EXTRA")
+        sec_gouci = Section(patt_gouci, "BEGIN_GOUCI", "END_GOUCI")
+
         for line in f:
             if (not patt_com.match(line)) and (not patt_blank.match(line)):
-                for _patt, _list in (
-                        (patt_table, _table),
-                        (patt_gouci, _gouci),
-                        (patt_conf, _attri)):
-                    if _patt.match(line):
+                for _sec, _list in (
+                        (sec_table, _table),
+                        (sec_table_extra, _table_extra),
+                        (sec_gouci, _gouci),
+                        (sec_conf, _attri)):
+                    if _sec.match(line):
                         _list.append(line)
                         break
 
@@ -240,6 +272,7 @@ def main():
                 _gouci.append('%s\t%s' %(key, gouci_dict[key]))
             _gouci.sort()
 
+        _table += _table_extra
         return (_attri, _table, _gouci)
 
     def parse_pinyin(f: Iterable[str]) -> List[str]:
