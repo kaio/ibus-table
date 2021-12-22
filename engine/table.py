@@ -1318,6 +1318,74 @@ class TabEngine(IBus.EngineSimple):
         self._lookup_table.append_candidate(text)
         self._lookup_table.set_cursor_visible(True)
 
+    @staticmethod
+    def select_longest_prefix_idx(asc_table_codes: List[str]) -> int:
+        prefix_tree: List[List[()]] = []
+        idx = -1
+        count = 1
+
+        '''
+        (branch from, node index of branch from), (code, asc table codes index, same prefix count), ...
+        for input
+        ["w","wx","wxa","wxb","wxbc","wccd", "wxbd", "ilonga"]
+        build a tree like this
+        (-1, 0),('w', 0, 1),('wx', 1, 2),('wxa', 2, 3),
+        (0, 2),('wxb', 3, 3),('wxbc', 4, 4),
+        (0, 1),('wccd', 5, 2),
+        (1, 1),('wxbd', 6, 4),
+        (-1, 0),('ilonga', 7, 1),
+
+        '''
+        for code_idx in range(len(asc_table_codes)):
+            branch_count = len(prefix_tree)
+            code = asc_table_codes[code_idx]
+
+            branch_idx = branch_count - 1
+            node_idx = 0
+            # traverse branches
+            while branch_idx >= 0:
+                prefix_branch = prefix_tree[branch_idx]
+                branch_count = len(prefix_branch)
+                node_idx = branch_count - 1
+                # traverse nodes
+                while node_idx > 0:
+                    node = prefix_branch[node_idx]
+                    if code.startswith(node[0]):
+                        # make a leaf
+                        if node_idx == branch_count - 1:
+                            # extends branch
+                            prefix_branch.append((code, code_idx, node[2] + 1))
+                        else:
+                            # in a new branch
+                            new_branch = [(branch_idx, node_idx), (code, code_idx, node[2] + 1)]
+                            prefix_tree.append(new_branch)
+
+                        break
+                    else:
+                        # next node
+                        node_idx -= 1
+
+                if node_idx > 0:
+                    break
+                else:
+                    # next branch
+                    branch_idx -= 1
+
+            if node_idx == 0:
+                # new root branch
+                new_branch = [(branch_idx, node_idx), (code, code_idx, 1)]
+                prefix_tree.append(new_branch)
+
+        # tree leaf holds the max same-prefix count code
+        for branch in prefix_tree:
+            node = branch[-1]
+            if node[2] >= count:
+                count = node[2]
+                if node[1] > idx:
+                    idx = node[1]
+
+        return idx
+
     def append_pinyin_candidate(
             self, tabkeys=u'', phrase=u'', freq=0, user_freq=0) -> None:
         '''append pinyin candidate to lookup table'''
@@ -1372,7 +1440,8 @@ class TabEngine(IBus.EngineSimple):
             # the last element of the list of table codes.
             possible_table_codes = self.database.find_zi_code(phrase)
             if possible_table_codes:
-                table_code = possible_table_codes[-1]
+                idx = self.select_longest_prefix_idx(possible_table_codes)
+                table_code = possible_table_codes[idx]
             table_code_new = u''
             for char in table_code:
                 if char in self._prompt_characters:
