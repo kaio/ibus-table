@@ -1319,7 +1319,7 @@ class TabEngine(IBus.EngineSimple):
         self._lookup_table.set_cursor_visible(True)
 
     @staticmethod
-    def select_longest_prefix_idx(asc_table_codes: List[str]) -> int:
+    def get_common_prefix_sorted_list(asc_table_codes: List[str]) -> List[int]:
         prefix_tree: List[List[()]] = []
         idx = -1
         count = 1
@@ -1377,14 +1377,25 @@ class TabEngine(IBus.EngineSimple):
                 prefix_tree.append(new_branch)
 
         # tree leaf holds the max same-prefix count code
-        for branch in prefix_tree:
-            node = branch[-1]
-            if node[2] >= count:
-                count = node[2]
-                if node[1] > idx:
-                    idx = node[1]
+        nodes = [branch[-1] for branch in prefix_tree]
+        # sort by max same-prefix count then idx
+        nodes = sorted(nodes, key=lambda n: n[2] * 16 + n[1], reverse=True)
 
-        return idx
+        idx_array = [node[1] for node in nodes]
+
+        return idx_array
+
+    def select_best_idx_from_prefix_list(self, asc_table_codes: List[str], sorted_idx_list: List[int]) -> int:
+        if self._engine_name == 'erbi-qs':
+            # for erbi-qs, code start with i/u/v is auxiliary
+            for i in sorted_idx_list:
+                first_char = asc_table_codes[i][0]
+                if first_char in ('i', 'u', 'v'):
+                    continue
+                else:
+                    return i
+
+        return sorted_idx_list[0]
 
     def append_pinyin_candidate(
             self, tabkeys=u'', phrase=u'', freq=0, user_freq=0) -> None:
@@ -1440,7 +1451,8 @@ class TabEngine(IBus.EngineSimple):
             # the last element of the list of table codes.
             possible_table_codes = self.database.find_zi_code(phrase)
             if possible_table_codes:
-                idx = self.select_longest_prefix_idx(possible_table_codes)
+                idx_array = self.get_common_prefix_sorted_list(possible_table_codes)
+                idx = self.select_best_idx_from_prefix_list(possible_table_codes, idx_array)
                 table_code = possible_table_codes[idx]
             table_code_new = u''
             for char in table_code:
