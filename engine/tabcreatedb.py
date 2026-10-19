@@ -484,10 +484,12 @@ def main() -> None:
                 extra_phrases.update(
                     {f'{extraword[0]}\t{extraword[1]}': extraword})
             debug_print(f'\t  the len of extra_phrases is: {len(extra_phrases)}')
-            # pop duplicated keys
-            for extra_phrase in extra_phrases:
-                if extra_phrase in orig_phrases:
-                    extra_phrases.pop(extra_phrase)
+            # remove duplicated keys
+            extra_phrases = {
+                extra_phrase: entry
+                for extra_phrase, entry in extra_phrases.items()
+                if extra_phrase not in orig_phrases
+            }
             debug_print(f'\t  {len(extra_phrases)} extra phrases will be added')
             new_phrases = list(extra_phrases.values())
             debug_print('\tAdding extra words into DB ')
