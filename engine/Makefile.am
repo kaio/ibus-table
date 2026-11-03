@@ -32,10 +32,12 @@ engine_table_PYTHON = \
 	table.py \
 	tabcreatedb.py \
 	tabsqlitedb.py \
+	it_gtk.py \
 	it_util.py \
 	it_active_window.py \
 	it_sound.py \
 	version.py \
+	g_compat_helpers.py \
 	$(NULL)
 engine_table_DATA = \
 	$(NULL)

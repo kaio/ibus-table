@@ -37,12 +37,9 @@ require_version('Gio', '2.0')
 from gi.repository import Gio  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
 require_version('GLib', '2.0')
 from gi.repository import GLib  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
-require_version('Gdk', '3.0')
-from gi.repository import Gdk  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
-require_version('Gtk', '3.0')
-from gi.repository import Gtk  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
 require_version('IBus', '1.0')
 from gi.repository import IBus
+from it_gtk import Gdk, Gtk, GTK_MAJOR, GTK_VERSION
 # pylint: enable=wrong-import-position
 
 import version
@@ -932,10 +929,10 @@ class HotKeys:
     def __str__(self) -> str:
         return repr(self._hotkeys)
 
-class ItKeyInputDialog(Gtk.MessageDialog): # type: ignore[misc]
+class ItKeyInputDialog:
     '''
-    A dialog to enter a key or a key combination to be used as a
-    key binding for a command.
+    Unified Gtk3/Gtk4 dialog for capturing a single key or key combination.
+    API-compatible with the original Gtk3 MessageDialog version.
     '''
     def __init__(
             self,
@@ -943,63 +940,213 @@ class ItKeyInputDialog(Gtk.MessageDialog): # type: ignore[misc]
             # requesting that the user types a key to be used as a new
             # key binding for a command.
             title: str = _('Key input'),
-            parent: Gtk.Window = None) -> None:
-        Gtk.MessageDialog.__init__(
-            self,
+            parent: Gtk.Window = None,
+            parent_popover: Gtk.Popover = None) -> None:
+        self.e: Optional[tuple[int, int]] = None
+        self._response: Optional[Gtk.ResponseType] = None
+        if parent_popover:
+            parent_popover.popdown()
+        if GTK_MAJOR >= 4:
+            self._build_gtk4(title, parent)
+            return
+        self._build_gtk3(title,parent)
+
+    def _build_gtk3(self, title: str, parent: Gtk.Window) -> None:
+        '''Build Gtk3 version of the dialog'''
+        self.dialog = Gtk.MessageDialog(
+            parent=parent,
             title=title,
-            parent=parent)
-        self.add_button(_('Cancel'), Gtk.ResponseType.CANCEL)
-        self.set_modal(True)
+            message_type=Gtk.MessageType.INFO,
+            buttons=Gtk.ButtonsType.NONE)
+        self.dialog.add_button(_('Cancel'), Gtk.ResponseType.CANCEL)
+        self.dialog.set_modal(True)
         # Translators: This is from the dialog to enter a key or a
         # key combination to be used as a key binding for a
         # command.
         text = _('Please press a key (or a key combination)')
-        self.set_markup(f'<big><b>{GLib.markup_escape_text(text)}</b></big>')
-        self.format_secondary_text(
+        self.dialog.set_markup(f'<big><b>{GLib.markup_escape_text(text)}</b></big>')
+        self.dialog.format_secondary_text(
             # Translators: This is from the dialog to enter a key or a
             # key combination to be used as a key binding for a
             # command.
             _('The dialog will be closed when the key is released'))
-        self.connect('key_press_event', self.on_key_press_event)
-        self.connect('key_release_event', self.on_key_release_event)
+        self.dialog.connect('key-press-event', self._on_key_press_gtk3)
+        self.dialog.connect('key-release-event', self._on_key_release_gtk3)
         if parent:
-            self.set_transient_for(parent.get_toplevel())
-        self.show()
+            self.dialog.set_transient_for(parent)
+        self.dialog.show()
 
-    def on_key_press_event(# pylint: disable=no-self-use
-            self, widget: Gtk.MessageDialog, event: Gdk.EventKey) -> bool:
+    def _on_key_press_gtk3(
+        self,
+        _widget: Gtk.Widget,
+        event: 'Gdk.EventKey', # pylint: disable=c-extension-no-member
+    ) -> bool:
         '''Called when a key is pressed'''
-        widget.e = (event.keyval,
-                    event.get_state() & KEYBINDING_STATE_MASK)
+        self.e = (event.keyval,
+                  event.get_state() & KEYBINDING_STATE_MASK)
         return True
 
-    def on_key_release_event(# pylint: disable=no-self-use
-            self, widget: Gtk.MessageDialog, _event: Gdk.EventKey) -> bool:
+    def _on_key_release_gtk3(
+        self,
+        _widget: Gtk.Widget,
+        _event: 'Gdk.EventKey', # pylint: disable=c-extension-no-member
+    ) -> bool:
         '''Called when a key is released'''
-        widget.response(Gtk.ResponseType.OK)
+        if self.e is None:
+            return True
+        self.dialog.response(Gtk.ResponseType.OK)
         return True
+
+    def _build_gtk4(self, title: str, parent: Gtk.Window) -> None:
+        self.dialog = Gtk.Dialog(
+            title=title,
+            transient_for=parent,
+            modal=True)
+        self.dialog.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        box.set_margin_top(12)
+        box.set_margin_bottom(12)
+        box.set_margin_start(12)
+        box.set_margin_end(12)
+        self.dialog.set_child(box)
+        title_label = Gtk.Label()
+        # Translators: This is from the dialog to enter a key or a
+        # key combination to be used as a key binding for a
+        # command.
+        text = _('Please press a key (or a key combination)')
+        title_label.set_markup(f'<big><b>{GLib.markup_escape_text(text)}</b></big>')
+        title_label.set_xalign(0)
+        box.append(title_label)
+        sec_label = Gtk.Label(label=_(
+            # Translators: This is from the dialog to enter a key or a
+            # key combination to be used as a key binding for a
+            # command.
+            'The dialog will be closed when the key is released'))
+        sec_label.set_xalign(0)
+        sec_label.set_wrap(True)
+        box.append(sec_label)
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        button_box.set_halign(Gtk.Align.END)
+        button_box.set_margin_top(12)
+        box.append(button_box)
+        cancel_button = Gtk.Button(label=_('Cancel'))
+        button_box.append(cancel_button)
+        controller = Gtk.EventControllerKey()
+        controller.connect('key-pressed', self._on_key_press_gtk4)
+        controller.connect('key-released', self._on_key_release_gtk4)
+        self.dialog.add_controller(controller)
+        self.dialog.set_focusable(True)
+
+        def on_dialog_mapped(dialog: Gtk.Dialog) -> None:
+            '''Try to grab pointer and input'''
+            dialog.grab_focus()
+            default = dialog.get_default_widget()
+            if default:
+                default.grab_focus()
+
+        def on_response(dialog: Gtk.Dialog, response_id: Gtk.ResponseType) -> None:
+            '''Handle responses (cancel button, dialog close)'''
+            self._response = response_id
+            try:
+                dialog.hide()
+            except Exception: # pylint: disable=broad-exception-caught  # noqa: BLE001
+                pass
+
+        def on_cancel_clicked(_button: Gtk.Button) -> None:
+            '''Called when the cancel button is clicked'''
+            self._response = Gtk.ResponseType.CANCEL
+            try:
+                self.dialog.hide()
+            except Exception: # pylint: disable=broad-exception-caught  # noqa: BLE001
+                pass
+
+        cancel_button.connect('clicked', on_cancel_clicked)
+        self.dialog.connect('response', on_response)
+        self.dialog.connect('map', on_dialog_mapped)
+        self.dialog.present()
+
+    def _on_key_press_gtk4(
+            self,
+            _controller: 'Gtk.EventControllerKey',
+            keyval: int,
+            _keycode: int,
+            state: int,
+    ) -> bool:
+        '''Called when a key is pressed'''
+        self.e = (keyval, state & KEYBINDING_STATE_MASK)
+        return True
+
+    def _on_key_release_gtk4(
+            self,
+            _controller: 'Gtk.EventControllerKey',
+            _keyval: int,
+            _keycode: int,
+            _state: int,
+    ) -> bool:
+        '''Called when a key is released'''
+        if self.e is None:
+            return True
+        self._response = Gtk.ResponseType.OK
+        try:
+            self.dialog.hide()
+        except Exception: # pylint: disable=broad-exception-caught  # noqa: BLE001
+            pass
+        return True
+
+    def run(self) -> int:
+        '''Gtk4 run() emulation'''
+        if GTK_MAJOR < 4:
+            return int(self.dialog.run())
+
+        loop = GLib.MainLoop() # Manual mainloop until _response is set
+
+        def _quit_when_ready() -> bool:
+            if self._response is not None:
+                loop.quit()
+                return False
+            return True
+
+        GLib.timeout_add(20, _quit_when_ready)
+        loop.run()
+
+        if self._response is None:
+            return int(Gtk.ResponseType.CANCEL)
+        return int(self._response)
+
+    def destroy(self) -> None:
+        '''Common to Gtk3 and Gtk4'''
+        try:
+            self.dialog.destroy()
+        except Exception: # pylint: disable=broad-exception-caught  # noqa: BLE001
+            pass
 
 class ItAboutDialog(Gtk.AboutDialog): # type: ignore[misc]
     '''
     The “About” dialog for ibus-table
     '''
-    def  __init__(self, parent: Gtk.Window = None) -> None:
-        Gtk.AboutDialog.__init__(self, parent=parent)
-        self.set_modal(True)
+    def  __init__(self, parent: Optional[Gtk.Window] = None) -> None:
+        if GTK_MAJOR >= 4:
+            Gtk.AboutDialog.__init__(self)
+        else:
+            Gtk.AboutDialog.__init__(self, parent=parent)
+        if parent is not None:
+            self.set_transient_for(parent)
+            self.set_modal(True)
+            self.set_destroy_with_parent(True)
         # An empty string in aboutdialog.set_logo_icon_name('')
-        # prevents an ugly default icon to be shown.
-        #     self.set_logo_icon_name('')
-        # But it looks nicer if we do not use this and use
-        #  Gtk.Window.set_default_icon_from_file(icon_file_name)
-        # in the main window of the setup tool
+        # prevents an ugly default icon to be shown. We don’t yet
+        # have nice icons for ibus-table.
+        self.set_logo_icon_name('')
         self.set_title(f'码 IBus Table {version.get_version()}')
         self.set_program_name('码 IBus Table')
-        self.set_version(version.get_version())
+        self.set_version(
+            f'ibus-table-{version.get_version()}'
+            f', Gtk {".".join(str(i) for i in GTK_VERSION)}')
         self.set_comments(
             _('Table input method for IBus.'))
         self.set_copyright(
             'Copyright © 2009-2012 Peng Huang,\n'
-            'Copyright © 2012-2022 Mike FABIAN')
+            'Copyright © 2012-2026 Mike FABIAN')
         self.set_authors([
             'Yuwei YU (“acevery”)',
             'Peng Huang',
@@ -1018,8 +1165,6 @@ class ItAboutDialog(Gtk.AboutDialog): # type: ignore[misc]
             ])
         self.set_translator_credits(
             # Translators: put your names here, one name per line.
-            # The list of names of the translators for the current locale
-            # will be displayed in the “About ibus-table” dialog.
             _('translator-credits'))
         # self.set_artists('')
         self.set_documenters([
@@ -1047,13 +1192,14 @@ class ItAboutDialog(Gtk.AboutDialog): # type: ignore[misc]
         self.set_wrap_license(True)
         # overrides the above .set_license()
         self.set_license_type(Gtk.License.LGPL_2_1)
-        self.connect('response', self.on_close_aboutdialog)
-        if parent:
-            self.set_transient_for(parent.get_toplevel())
+        if GTK_MAJOR >= 4:
+            self.connect('close-request', self.on_close_aboutdialog)
+        else:
+            self.connect('response', self.on_close_aboutdialog)
         self.show()
+        self.present()
 
-    def on_close_aboutdialog( # pylint: disable=no-self-use
-            self, _about_dialog: Gtk.Dialog, _response: Gtk.ResponseType) -> None:
+    def on_close_aboutdialog(self, *_args: Any) -> None:
         '''
         The “About” dialog has been closed by the user
 

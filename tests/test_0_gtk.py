@@ -38,20 +38,22 @@ import unittest
 
 from gi import require_version as gi_require_version
 gi_require_version('GLib', '2.0')
-gi_require_version('Gdk', '3.0')
 gi_require_version('Gio', '2.0')
-gi_require_version('Gtk', '3.0')
 gi_require_version('IBus', '1.0')
 from gi.repository import GLib  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
-from gi.repository import Gdk  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
 from gi.repository import Gio  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
-from gi.repository import Gtk  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
 from gi.repository import IBus
 
 # Get more verbose output in the test log:
 os.environ['IBUS_TABLE_DEBUG_LEVEL'] = '255'
 
 sys.path.insert(0, "../engine")
+if os.environ.get('IT_GTK_VERSION', None) is None:
+    os.environ['IT_GTK_VERSION'] = '3'
+# pylint: disable=import-error
+from it_gtk import Gdk, Gtk
+# pylint: enable=import-error
+
 table: Optional[ModuleType]
 try:
     import table as _table
@@ -93,7 +95,7 @@ def printerr(sentence: str) -> None:
     and os.environ['XDG_SESSION_TYPE'] in ('x11', 'wayland'),
     'XDG_SESSION_TYPE is neither "x11" nor "wayland".')
 @unittest.skipIf(Gdk.Display.open('') is None, 'Display cannot be opened.')
-class SimpleGtkTestCase(unittest.TestCase):
+class SimpleGtk3TestCase(unittest.TestCase):
     glib_main_loop: Optional[GLib.MainLoop] = None
     ENGINE_PATH = '/com/redhat/IBus/engines/table/Test/Engine'
     _flag: bool = False

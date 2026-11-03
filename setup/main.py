@@ -56,10 +56,6 @@ GLib.set_application_name('IBus Table Preferences')
 # This makes gnome-shell load the .desktop file when running under Wayland:
 GLib.set_prgname('ibus-setup-table')
 
-require_version('Gdk', '3.0')
-from gi.repository import Gdk  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
-require_version('Gtk', '3.0')
-from gi.repository import Gtk  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
 require_version('Pango', '1.0')
 from gi.repository import Pango  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
 require_version('IBus', '1.0')
@@ -68,11 +64,36 @@ from gi.repository import IBus
 
 # pylint: disable=wrong-import-order
 # pylint: disable=import-error
-sys.path = [sys.path[0]+'/../engine'] + sys.path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'engine'))
 import tabsqlitedb
 import ibus_table_location
 import it_util
 import it_sound
+import version
+from it_gtk import Gdk, Gtk, GTK_MAJOR, GTK_VERSION
+from g_compat_helpers import (
+    is_wayland,
+    add_child,
+    set_border_width,
+    set_label_wrap_mode,
+    clear_children,
+    show_all,
+    set_scrolled_shadow,
+    combobox_set_active,
+    get_toplevel_window,
+    PopupKind,
+    PopupManager,
+    create_popover,
+    set_entry_text_preserve_cursor,
+    get_window_size,
+    connect_fast_click,
+    MessageDialogCompat,
+    ConfirmDialogCompat,
+    CompatButton,
+    choose_file_open,
+    liststore_append,
+)
+# pylint: enable=wrong-import-order
 # pylint: enable=import-error
 
 from i18n import N_, _, init as i18n_init
@@ -81,12 +102,6 @@ from i18n import N_, _, init as i18n_init
 LOGGER = logging.getLogger('ibus-table')
 
 glib_main_loop: Optional[GLib.MainLoop] = None
-
-# pylint: disable=no-value-for-parameter
-GTK_VERSION = (Gtk.get_major_version(),
-               Gtk.get_minor_version(),
-               Gtk.get_micro_version())
-# pylint: enable=no-value-for-parameter
 
 PARSER = argparse.ArgumentParser(
     description='ibus-table setup tool')
@@ -128,30 +143,58 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
     def __init__( # pylint: disable=too-many-statements
             self, engine_name: str = '') -> None:
         self._engine_name = engine_name
-        Gtk.Window.__init__(
-            self,
-            title='码 IBus Table '
-            + self._engine_name + ' '
-            + _('Preferences'))
-        Gtk.Window.set_default_icon_from_file(
-            os.path.join(
-                ibus_table_location.data(), 'icons', 'ibus-table.svg'))
+        title = f'码 IBus Table {self._engine_name} {_("Preferences")}'
+        title += f' {version.get_version()}'
+        title += f', Gtk {".".join(str(i) for i in GTK_VERSION)}'
+
+        Gtk.Window.__init__(self, title=title)
+        self.set_title(title)
         self.set_name('IBusTablePreferences')
         self.set_modal(True)
-        style_provider = Gtk.CssProvider()
-        style_provider.load_from_data(
-            b'''
-            #IBusTablePreferences {
-            }
-            row { /* This is for listbox rows */
+        self.set_icon_name('ibus-table')
+        css = f'''
+            #IBusTablePreferences {{
+            }}
+            row {{ /* This is for listbox rows */
                 border-style: groove;
                 border-width: 0.05px;
-            }
-            ''')
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(),  # pylint: disable=c-extension-no-member
-            style_provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            }}
+            .scrolled-shadow {{
+                box-shadow: inset 0 0 2px rgba(0,0,0,0.5);
+                border-radius: 4px;
+                padding: 3px;
+            }}
+            /* The following has no effect on Gtk3, not sure on Gtk4: */
+            .scrolled-shadow .viewport {{
+                background-color: transparent;  /* do not override child's background */
+                box-shadow: inset 0 0 6px rgba(0,0,0,0.35);
+                border-radius: 4px;
+                padding: 3px;
+            }}
+            popover {{
+                border: 0;
+                border-radius: 0;
+                outline: none;
+                background-color: {'transparent' if is_wayland() else '@theme_bg_color'};
+            }}
+            notebook tab:checked {{
+                background-color: @theme_selected_bg_color;
+                color: @theme_selected_fg_color;
+            }}
+            '''
+        style_provider = Gtk.CssProvider()
+        if GTK_MAJOR >= 4:
+            style_provider.load_from_data(css, len(css)) # Gtk4 wants string
+            Gtk.StyleContext.add_provider_for_display(
+                Gdk.Display.get_default(), # pylint: disable=no-value-for-parameter
+                style_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        else:
+            style_provider.load_from_data(css.encode('UTF-8')) # Gtk3 wants bytes
+            Gtk.StyleContext.add_provider_for_screen(
+                Gdk.Screen.get_default(), # pylint: disable=c-extension-no-member
+                style_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         database_filename = os.path.join(
             os.path.join(ibus_table_location.data(), 'tables'),
@@ -189,53 +232,54 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             schema='org.freedesktop.ibus.engine.table',
             path=f'/org/freedesktop/ibus/engine/table/{self._engine_name}/')
         self._fill_settings_dict()
-        self.set_title(
-            '码 IBus Table '
-            + self._engine_name + ' '
-            + _('Preferences'))
 
-        self.connect('destroy-event', self.__class__._on_destroy_event)
-        self.connect('delete-event', self.__class__._on_delete_event)
+        if GTK_MAJOR >= 4:
+            self.connect('close-request', self._on_close)
+        else:
+            self.connect('delete-event', self._on_close)
 
-        self._main_container = Gtk.Box()
-        self._main_container.set_orientation(Gtk.Orientation.VERTICAL)
-        self._main_container.set_spacing(0)
-        self.add(self._main_container) # pylint: disable=no-member
-        self._notebook = Gtk.Notebook()
-        self._notebook.set_visible(True)
-        self._notebook.set_can_focus(False)
-        self._notebook.set_scrollable(True)
-        self._notebook.set_hexpand(True)
-        self._notebook.set_vexpand(True)
-        self._main_container.pack_start(self._notebook, True, True, 0)
-        self._dialog_action_area = Gtk.Box()
-        self._dialog_action_area.set_orientation(Gtk.Orientation.HORIZONTAL)
-        self._dialog_action_area.set_visible(True)
-        self._dialog_action_area.set_can_focus(False)
-        self._dialog_action_area.set_hexpand(True)
-        self._dialog_action_area.set_vexpand(False)
-        self._main_container.pack_end(self._dialog_action_area, True, True, 0)
-        self._about_button = Gtk.Button(label=_('About'))
-        self._about_button.set_hexpand(True)
-        self._about_button.connect('clicked', self.__class__._on_about_button_clicked)
-        self._dialog_action_area.add(self._about_button)
-        self._restore_all_defaults_button = Gtk.Button()
-        self._restore_all_defaults_button.set_hexpand(True)
-        self._restore_all_defaults_button_label = Gtk.Label()
-        self._restore_all_defaults_button_label.set_text(
-            _('Restore all defaults'))
-        self._restore_all_defaults_button.add(
-            self._restore_all_defaults_button_label)
+        self._popup_manager = PopupManager()
+
+        main_container = Gtk.Box()
+        main_container.set_orientation(Gtk.Orientation.VERTICAL)
+        main_container.set_spacing(0)
+        add_child(self, main_container)
+        notebook = Gtk.Notebook()
+        notebook.set_visible(True)
+        notebook.set_can_focus(True)  # True allows childs to focus in Gtk4
+        notebook.set_scrollable(True)
+        notebook.set_hexpand(True)
+        notebook.set_vexpand(True)
+        add_child(main_container, notebook)
+        dialog_action_area = Gtk.Box()
+        dialog_action_area.set_orientation(Gtk.Orientation.HORIZONTAL)
+        dialog_action_area.set_visible(True)
+        dialog_action_area.set_can_focus(False)
+        dialog_action_area.set_hexpand(True)
+        dialog_action_area.set_vexpand(False)
+        dialog_action_area.set_spacing(0)
+        add_child(main_container, dialog_action_area)
+        about_button = Gtk.Button(label=_('About'))
+        about_button.set_hexpand(True)
+        about_button.connect('clicked', self._on_about_button_clicked)
+        add_child(dialog_action_area, about_button)
+        empty_hexpanding_label = Gtk.Label()
+        empty_hexpanding_label.set_hexpand(True)
+        empty_hexpanding_label.set_vexpand(False)
+        add_child(dialog_action_area, empty_hexpanding_label)
+        self._restore_all_defaults_button = Gtk.Button(
+            label=_('Restore all defaults'))
         self._restore_all_defaults_button.connect(
             'clicked', self._on_restore_all_defaults_button_clicked)
-        self._dialog_action_area.add(self._restore_all_defaults_button)
-        self._close_button = Gtk.Button()
-        self._close_button.set_hexpand(True)
-        self._close_button_label = Gtk.Label()
-        self._close_button_label.set_text_with_mnemonic(_('_Close'))
-        self._close_button.add(self._close_button_label)
-        self._close_button.connect('clicked', self.__class__._on_close_clicked)
-        self._dialog_action_area.add(self._close_button)
+        add_child(dialog_action_area, self._restore_all_defaults_button)
+        empty_hexpanding_label = Gtk.Label()
+        empty_hexpanding_label.set_hexpand(True)
+        empty_hexpanding_label.set_vexpand(False)
+        add_child(dialog_action_area, empty_hexpanding_label)
+        self._close_button = CompatButton(
+            label=_('_Close'), use_underline=True)
+        self._close_button.connect('clicked', self._on_close)
+        add_child(dialog_action_area, self._close_button)
 
         grid_border_width = 10
         grid_row_spacing = 10
@@ -243,8 +287,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
 
         self._options_grid = Gtk.Grid()
         self._options_grid.set_visible(True)
-        self._options_grid.set_can_focus(False)
-        self._options_grid.set_border_width(grid_border_width)
+        self._options_grid.set_can_focus(True)  # True allows childs to focus in Gtk4
+        set_border_width(self._options_grid, grid_border_width)
         self._options_grid.set_row_spacing(grid_row_spacing)
         self._options_grid.set_column_spacing(grid_column_spacing)
         self._options_grid.set_row_homogeneous(False)
@@ -259,8 +303,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
 
         self._options_details_grid = Gtk.Grid()
         self._options_details_grid.set_visible(True)
-        self._options_details_grid.set_can_focus(False)
-        self._options_details_grid.set_border_width(grid_border_width)
+        self._options_details_grid.set_can_focus(True)  # True allows childs to focus in Gtk4
+        set_border_width(self._options_details_grid, grid_border_width)
         self._options_details_grid.set_row_spacing(grid_row_spacing)
         self._options_details_grid.set_column_spacing(grid_column_spacing)
         self._options_details_grid.set_row_homogeneous(False)
@@ -290,8 +334,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
 
         self._input_method_menu_grid = Gtk.Grid()
         self._input_method_menu_grid.set_visible(True)
-        self._input_method_menu_grid.set_can_focus(False)
-        self._input_method_menu_grid.set_border_width(grid_border_width)
+        self._input_method_menu_grid.set_can_focus(True)  # True allows childs to focus in Gtk4
+        set_border_width(self._input_method_menu_grid, grid_border_width)
         self._input_method_menu_grid.set_row_spacing(grid_row_spacing)
         self._input_method_menu_grid.set_column_spacing(grid_column_spacing)
         self._input_method_menu_grid.set_row_homogeneous(False)
@@ -301,16 +345,16 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._input_method_menu_label = Gtk.Label()
         self._input_method_menu_label.set_text(_('Menu Items'))
 
-        self._notebook.append_page(
+        notebook.append_page(
             self._options_grid,
             self._options_label)
-        self._notebook.append_page(
+        notebook.append_page(
             self._options_details_grid,
             self._options_details_label)
-        self._notebook.append_page(
+        notebook.append_page(
             self._keybindings_vbox,
             self._keybindings_label)
-        self._notebook.append_page(
+        notebook.append_page(
             self._input_method_menu_grid,
             self._input_method_menu_label)
 
@@ -341,10 +385,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._remember_input_mode_label.set_xalign(0)
         self._remember_input_mode_combobox = Gtk.ComboBox()
         self._remember_input_mode_store = Gtk.ListStore(str, bool)
-        self._remember_input_mode_store.append(
-            [_('No'), False])
-        self._remember_input_mode_store.append(
-            [_('Yes'), True])
+        liststore_append(self._remember_input_mode_store, [_('No'), False])
+        liststore_append(self._remember_input_mode_store, [_('Yes'), True])
         self._remember_input_mode_combobox.set_model(
             self._remember_input_mode_store)
         renderer_text = Gtk.CellRendererText()
@@ -354,7 +396,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             renderer_text, "text", 0)
         for index, item in enumerate(self._remember_input_mode_store):
             if self._settings_dict['rememberinputmode']['user'] == item[1]:
-                self._remember_input_mode_combobox.set_active(index)
+                combobox_set_active(self._remember_input_mode_combobox,
+                                    self._remember_input_mode_store, index)
         self._remember_input_mode_combobox.connect(
             "changed",
             self._on_remember_input_mode_combobox_changed)
@@ -385,25 +428,25 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._chinese_mode_label.set_xalign(0)
         self._chinese_mode_combobox = Gtk.ComboBox()
         self._chinese_mode_store = Gtk.ListStore(str, int)
-        self._chinese_mode_store.append(
+        liststore_append(self._chinese_mode_store,
             # Translators: This is the setting to use only
             # simplified Chinese
             [_('Simplified Chinese'), 0])
-        self._chinese_mode_store.append(
+        liststore_append(self._chinese_mode_store,
             # Translators: This is the setting to use only
             # traditional Chinese
             [_('Traditional Chinese'), 1])
-        self._chinese_mode_store.append(
+        liststore_append(self._chinese_mode_store,
             # Translators: This is the setting to use both
             # simplified and traditional Chinese but prefer
             # simplified Chinese
             [_('Simplified Chinese before traditional'), 2])
-        self._chinese_mode_store.append(
+        liststore_append(self._chinese_mode_store,
             # Translators: This is the setting to use both
             # simplified and traditional Chinese but prefer
             # traditional Chinese
             [_('Traditional Chinese before simplified'), 3])
-        self._chinese_mode_store.append(
+        liststore_append(self._chinese_mode_store,
             # Translators: This is the setting to use both
             # simplified and traditional Chinese in no
             # particular order
@@ -417,7 +460,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             renderer_text, "text", 0)
         for index, item in enumerate(self._chinese_mode_store):
             if self._settings_dict['chinesemode']['user'] == item[1]:
-                self._chinese_mode_combobox.set_active(index)
+                combobox_set_active(self._chinese_mode_combobox,
+                                    self._chinese_mode_store, index)
         self._chinese_mode_combobox.connect(
             "changed",
             self._on_chinese_mode_combobox_changed)
@@ -441,11 +485,11 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._table_full_width_letter_mode_label.set_xalign(0)
         self._table_full_width_letter_mode_combobox = Gtk.ComboBox()
         self._table_full_width_letter_mode_store = Gtk.ListStore(str, bool)
-        self._table_full_width_letter_mode_store.append(
+        liststore_append(self._table_full_width_letter_mode_store,
             # Translators: This is the mode to use half width letters
             # while in “Table input” mode.
             [_('Half'), False])
-        self._table_full_width_letter_mode_store.append(
+        liststore_append(self._table_full_width_letter_mode_store,
             # Translators: This is the mode to use full width letters
             # while in “Table input” mode.
             [_('Full'), True])
@@ -458,7 +502,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             renderer_text, "text", 0)
         for index, item in enumerate(self._table_full_width_letter_mode_store):
             if self._settings_dict['tabdeffullwidthletter']['user'] == item[1]:
-                self._table_full_width_letter_mode_combobox.set_active(index)
+                combobox_set_active(self._table_full_width_letter_mode_combobox,
+                                    self._table_full_width_letter_mode_store, index)
         self._table_full_width_letter_mode_combobox.connect(
             "changed",
             self._on_table_full_width_letter_mode_combobox_changed)
@@ -485,11 +530,11 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._table_full_width_punct_mode_combobox = Gtk.ComboBox()
         self._table_full_width_punct_mode_store = Gtk.ListStore(
             str, bool)
-        self._table_full_width_punct_mode_store.append(
+        liststore_append(self._table_full_width_punct_mode_store,
             # Translators: This is the mode to use half width punctuation
             # while in “Table input” mode.
             [_('Half'), False])
-        self._table_full_width_punct_mode_store.append(
+        liststore_append(self._table_full_width_punct_mode_store,
             # Translators: This is the mode to use full width punctuation
             # while in “Table input” mode.
             [_('Full'), True])
@@ -503,8 +548,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         for index, item in enumerate(
                 self._table_full_width_punct_mode_store):
             if self._settings_dict['tabdeffullwidthpunct']['user'] == item[1]:
-                self._table_full_width_punct_mode_combobox.set_active(
-                    index)
+                combobox_set_active(self._table_full_width_punct_mode_combobox,
+                                    self._table_full_width_punct_mode_store, index)
         self._table_full_width_punct_mode_combobox.connect(
             "changed",
             self._on_table_full_width_punct_mode_combobox_changed)
@@ -530,11 +575,11 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._direct_full_width_letter_mode_label.set_xalign(0)
         self._direct_full_width_letter_mode_combobox = Gtk.ComboBox()
         self._direct_full_width_letter_mode_store = Gtk.ListStore(str, bool)
-        self._direct_full_width_letter_mode_store.append(
+        liststore_append(self._direct_full_width_letter_mode_store,
             # Translators: This is the mode to use half width letters
             # while in “Direct input” mode.
             [_('Half'), False])
-        self._direct_full_width_letter_mode_store.append(
+        liststore_append(self._direct_full_width_letter_mode_store,
             # Translators: This is the mode to use full width letters
             # while in “Direct input” mode.
             [_('Full'), True])
@@ -548,7 +593,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         for index, item in enumerate(
                 self._direct_full_width_letter_mode_store):
             if self._settings_dict['endeffullwidthletter']['user'] == item[1]:
-                self._direct_full_width_letter_mode_combobox.set_active(index)
+                combobox_set_active(self._direct_full_width_letter_mode_combobox,
+                                    self._direct_full_width_letter_mode_store, index)
         self._direct_full_width_letter_mode_combobox.connect(
             "changed",
             self._on_direct_full_width_letter_mode_combobox_changed)
@@ -575,11 +621,11 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._direct_full_width_punct_mode_combobox = Gtk.ComboBox()
         self._direct_full_width_punct_mode_store = Gtk.ListStore(
             str, bool)
-        self._direct_full_width_punct_mode_store.append(
+        liststore_append(self._direct_full_width_punct_mode_store,
             # Translators: This is the mode to use half width punctuation
             # while in “Direct input” mode.
             [_('Half'), False])
-        self._direct_full_width_punct_mode_store.append(
+        liststore_append(self._direct_full_width_punct_mode_store,
             # Translators: This is the mode to use full width punctuation
             # while in “Direct input” mode.
             [_('Full'), True])
@@ -593,8 +639,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         for index, item in enumerate(
                 self._direct_full_width_punct_mode_store):
             if self._settings_dict['endeffullwidthpunct']['user'] == item[1]:
-                self._direct_full_width_punct_mode_combobox.set_active(
-                    index)
+                combobox_set_active(self._direct_full_width_punct_mode_combobox,
+                                    self._direct_full_width_punct_mode_store, index)
         self._direct_full_width_punct_mode_combobox.connect(
             "changed",
             self._on_direct_full_width_punct_mode_combobox_changed)
@@ -639,7 +685,7 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._always_show_lookup_checkbutton.set_active(
             self._settings_dict['alwaysshowlookup']['user'])
         self._always_show_lookup_checkbutton.connect(
-            "clicked", self._on_always_show_lookup_checkbutton)
+            "toggled", self._on_always_show_lookup_checkbutton)
         _options_grid_row += 1
         self._options_grid.attach(
             self._always_show_lookup_checkbutton, 0, _options_grid_row, 2, 1)
@@ -658,11 +704,11 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._lookup_table_orientation_label.set_xalign(0)
         self._lookup_table_orientation_combobox = Gtk.ComboBox()
         self._lookup_table_orientation_store = Gtk.ListStore(str, int)
-        self._lookup_table_orientation_store.append(
+        liststore_append(self._lookup_table_orientation_store,
             [_('Horizontal'), int(IBus.Orientation.HORIZONTAL)])
-        self._lookup_table_orientation_store.append(
+        liststore_append(self._lookup_table_orientation_store,
             [_('Vertical'), int(IBus.Orientation.VERTICAL)])
-        self._lookup_table_orientation_store.append(
+        liststore_append(self._lookup_table_orientation_store,
             [_('System default'), int(IBus.Orientation.SYSTEM)])
         self._lookup_table_orientation_combobox.set_model(
             self._lookup_table_orientation_store)
@@ -674,7 +720,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         for index, item in enumerate(self._lookup_table_orientation_store):
             if (self._settings_dict['lookuptableorientation']['user']
                 == item[1]):
-                self._lookup_table_orientation_combobox.set_active(index)
+                combobox_set_active(self._lookup_table_orientation_combobox,
+                                    self._lookup_table_orientation_store, index)
         self._lookup_table_orientation_combobox.connect(
             "changed",
             self._on_lookup_table_orientation_combobox_changed)
@@ -728,14 +775,14 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._keybindings_treeview_scroll.set_can_focus(False)
         self._keybindings_treeview_scroll.set_hexpand(False)
         self._keybindings_treeview_scroll.set_vexpand(True)
-        #self._keybindings_treeview_scroll.set_shadow_type(in)
+        set_scrolled_shadow(self._keybindings_treeview_scroll)
         self._keybindings_treeview = Gtk.TreeView()
         self._keybindings_treeview_model = Gtk.ListStore(str, str)
         self._keybindings_treeview.set_model(self._keybindings_treeview_model)
 
         user_keybindings = self._settings_dict['keybindings']['user']
         for command in sorted(user_keybindings):
-            self._keybindings_treeview_model.append(
+            liststore_append(self._keybindings_treeview_model,
                 (command, repr(user_keybindings[command])))
         keybindings_treeview_column_0 = Gtk.TreeViewColumn(
             # Translators: Column heading of the table listing the
@@ -757,70 +804,52 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             'changed', self._on_keybindings_treeview_row_selected)
         self._keybindings_treeview.connect(
             'row-activated', self._on_keybindings_treeview_row_activated)
-        self._keybindings_treeview_scroll.add(self._keybindings_treeview)
-        self._keybindings_vbox.pack_start(
-            self._keybindings_label, False, False, 0)
-        self._keybindings_vbox.pack_start(
-            self._keybindings_treeview_scroll, True, True, 0)
+        add_child(self._keybindings_treeview_scroll, self._keybindings_treeview)
+        add_child(self._keybindings_vbox, self._keybindings_label)
+        add_child(self._keybindings_vbox, self._keybindings_treeview_scroll)
         self._keybindings_action_area = Gtk.Box()
         self._keybindings_action_area.set_orientation(
             Gtk.Orientation.HORIZONTAL)
-        self._keybindings_action_area.set_can_focus(False)
-        self._keybindings_vbox.add(
-            self._keybindings_action_area)
-        self._keybindings_edit_button = Gtk.Button()
-        self._keybindings_edit_button_label = Gtk.Label()
-        self._keybindings_edit_button_label.set_text(
-            _('Edit'))
-        self._keybindings_edit_button.add(
-            self._keybindings_edit_button_label)
-        self._keybindings_edit_button.set_tooltip_text(
+        self._keybindings_action_area.set_can_focus(True)
+        add_child(self._keybindings_vbox, self._keybindings_action_area)
+        self._keybindings_edit_button = Gtk.Button(
+            label=_('Edit'),
             # Translators: A tooltip for the button to edit
             # the keybindings for the selected command.
-            _('Edit the key bindings for the selected command'))
+            tooltip_text=_('Edit the key bindings for the selected command'))
         self._keybindings_edit_button.set_sensitive(False)
         self._keybindings_edit_button.connect(
             'clicked', self._on_keybindings_edit_button_clicked)
-        self._keybindings_default_button = Gtk.Button()
-        self._keybindings_default_button_label = Gtk.Label()
-        self._keybindings_default_button_label.set_text(
-            _('Set to default'))
-        self._keybindings_default_button.add(
-            self._keybindings_default_button_label)
-        self._keybindings_default_button.set_tooltip_text(
+        self._keybindings_default_button = Gtk.Button(
+            label=_('Set to default'),
             # Translators: A tooltip for the button to set
             # the default key bindings for the selected command.
-            _('Set default key bindings for the selected command'))
+            tooltip_text=_('Set default key bindings for the selected command'))
         self._keybindings_default_button.set_sensitive(False)
         self._keybindings_default_button.connect(
             'clicked', self._on_keybindings_default_button_clicked)
-        self._keybindings_all_default_button = Gtk.Button()
-        self._keybindings_all_default_button_label = Gtk.Label()
-        self._keybindings_all_default_button_label.set_text(
-            _('Set all to default'))
-        self._keybindings_all_default_button.add(
-            self._keybindings_all_default_button_label)
-        self._keybindings_all_default_button.set_tooltip_text(
+        self._keybindings_all_default_button = Gtk.Button(
+            label=_('Set all to default'),
             # Translators: A tooltip for the button to set the
             # key bindings to default for all commands.
-            _('Set default key bindings for all commands'))
+            tooltip_text=_('Set default key bindings for all commands'))
         self._keybindings_all_default_button.set_sensitive(True)
         self._keybindings_all_default_button.connect(
             'clicked', self._on_keybindings_all_default_button_clicked)
-        self._keybindings_action_area.add(self._keybindings_edit_button)
-        self._keybindings_action_area.add(self._keybindings_default_button)
-        self._keybindings_action_area.add(self._keybindings_all_default_button)
+        add_child(self._keybindings_action_area, self._keybindings_edit_button)
+        add_child(self._keybindings_action_area, self._keybindings_default_button)
+        add_child(self._keybindings_action_area, self._keybindings_all_default_button)
         self._keybindings_selected_command = ''
         self._keybindings_edit_popover_selected_keybinding = ''
         self._keybindings_edit_popover_selected_keybinding_index = -1
-        self._keybindings_edit_popover_listbox = None
-        self._keybindings_edit_popover = None
-        self._keybindings_edit_popover_scroll = None
-        self._keybindings_edit_popover_add_button = None
-        self._keybindings_edit_popover_remove_button = None
-        self._keybindings_edit_popover_default_button = None
-        self._keybindings_edit_popover_up_button = None
-        self._keybindings_edit_popover_down_button = None
+        self._keybindings_edit_popover_listbox: Optional[Gtk.ListBox] = None
+        self._keybindings_edit_popover: Optional[Gtk.Popover] = None
+        self._keybindings_edit_popover_scroll: Optional[Gtk.ScrolledWindow] = None
+        self._keybindings_edit_popover_add_button: Optional[Gtk.Button] = None
+        self._keybindings_edit_popover_remove_button: Optional[Gtk.Button] = None
+        self._keybindings_edit_popover_default_button: Optional[Gtk.Button] = None
+        self._keybindings_edit_popover_up_button: Optional[Gtk.Button] = None
+        self._keybindings_edit_popover_down_button: Optional[Gtk.Button] = None
 
         _options_details_grid_row = -1
 
@@ -838,22 +867,20 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._dynamic_adjust_checkbutton.set_active(
             self._settings_dict['dynamicadjust']['user'])
         self._dynamic_adjust_checkbutton.connect(
-            'clicked', self._on_dynamic_adjust_checkbutton)
+            'toggled', self._on_dynamic_adjust_checkbutton)
         self._dynamic_adjust_forget_button = Gtk.Button()
-        self._dynamic_adjust_forget_button_box = Gtk.HBox()  # pylint: disable=c-extension-no-member
-        self._dynamic_adjust_forget_button_label = Gtk.Label()
-        self._dynamic_adjust_forget_button_label.set_text(
-            _('Delete all learned data'))
-        self._dynamic_adjust_forget_button_label.set_use_markup(True)
+        self._dynamic_adjust_forget_button_box = Gtk.Box()
+        self._dynamic_adjust_forget_button_label = Gtk.Label(
+            label=_('Delete all learned data'), use_markup=True)
         self._dynamic_adjust_forget_button_label.set_max_width_chars(
             40)
-        self._dynamic_adjust_forget_button_label.set_line_wrap(False)
+        set_label_wrap_mode(self._dynamic_adjust_forget_button_label, False)
         self._dynamic_adjust_forget_button_label.set_ellipsize(
             Pango.EllipsizeMode.START)
-        self._dynamic_adjust_forget_button_box.pack_start(
-            self._dynamic_adjust_forget_button_label, False, False, 0)
-        self._dynamic_adjust_forget_button.add(
-            self._dynamic_adjust_forget_button_box)
+        add_child(self._dynamic_adjust_forget_button_box,
+                  self._dynamic_adjust_forget_button_label)
+        add_child(self._dynamic_adjust_forget_button,
+                  self._dynamic_adjust_forget_button_box)
         self._dynamic_adjust_forget_button.connect(
             'clicked', self._on_dynamic_adjust_forget_button)
         _options_details_grid_row += 1
@@ -880,10 +907,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._onechar_mode_label.set_xalign(0)
         self._onechar_mode_combobox = Gtk.ComboBox()
         self._onechar_mode_store = Gtk.ListStore(str, int)
-        self._onechar_mode_store.append(
-            [_('Phrase'), False])
-        self._onechar_mode_store.append(
-            [_('Single Char'), True])
+        liststore_append(self._onechar_mode_store, [_('Phrase'), False])
+        liststore_append(self._onechar_mode_store, [_('Single Char'), True])
         self._onechar_mode_combobox.set_model(
             self._onechar_mode_store)
         renderer_text = Gtk.CellRendererText()
@@ -893,7 +918,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             renderer_text, "text", 0)
         for index, item in enumerate(self._onechar_mode_store):
             if self._settings_dict['onechar']['user'] == item[1]:
-                self._onechar_mode_combobox.set_active(index)
+                combobox_set_active(self._onechar_mode_combobox,
+                                    self._onechar_mode_store, index)
         self._onechar_mode_combobox.connect(
             "changed", self._on_onechar_mode_combobox_changed)
         if self.__is_cjk:
@@ -928,7 +954,7 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._autoselect_mode_checkbutton.set_active(
             self._settings_dict['autoselect']['user'])
         self._autoselect_mode_checkbutton.connect(
-            'clicked', self._on_autoselect_mode_checkbutton)
+            'toggled', self._on_autoselect_mode_checkbutton)
         _options_details_grid_row += 1
         self._options_details_grid.attach(
             self._autoselect_mode_checkbutton,
@@ -955,10 +981,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._autocommit_mode_label.set_xalign(0)
         self._autocommit_mode_combobox = Gtk.ComboBox()
         self._autocommit_mode_store = Gtk.ListStore(str, int)
-        self._autocommit_mode_store.append(
-            [_('Normal'), False])
-        self._autocommit_mode_store.append(
-            [_('Direct'), True])
+        liststore_append(self._autocommit_mode_store, [_('Normal'), False])
+        liststore_append(self._autocommit_mode_store, [_('Direct'), True])
         self._autocommit_mode_combobox.set_model(
             self._autocommit_mode_store)
         renderer_text = Gtk.CellRendererText()
@@ -968,7 +992,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             renderer_text, "text", 0)
         for index, item in enumerate(self._autocommit_mode_store):
             if self._settings_dict['autocommit']['user'] == item[1]:
-                self._autocommit_mode_combobox.set_active(index)
+                combobox_set_active(self._autocommit_mode_combobox,
+                                    self._autocommit_mode_store, index)
         self._autocommit_mode_combobox.connect(
             "changed", self._on_autocommit_mode_combobox_changed)
         if self.__user_can_define_phrase and self.__rules:
@@ -1001,9 +1026,9 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._commit_invalid_mode_label.set_xalign(0)
         self._commit_invalid_mode_combobox = Gtk.ComboBox()
         self._commit_invalid_mode_store = Gtk.ListStore(str, int)
-        self._commit_invalid_mode_store.append(
+        liststore_append(self._commit_invalid_mode_store,
             [_('Commit current candidate'), 0])
-        self._commit_invalid_mode_store.append(
+        liststore_append(self._commit_invalid_mode_store,
             [_('Commit typed keys'), 1])
         self._commit_invalid_mode_combobox.set_model(
             self._commit_invalid_mode_store)
@@ -1014,7 +1039,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             renderer_text, "text", 0)
         for index, item in enumerate(self._commit_invalid_mode_store):
             if self._settings_dict['commitinvalidmode']['user'] == item[1]:
-                self._commit_invalid_mode_combobox.set_active(index)
+                combobox_set_active(self._commit_invalid_mode_combobox,
+                                    self._commit_invalid_mode_store, index)
         self._commit_invalid_mode_combobox.connect(
             "changed", self._on_commit_invalid_mode_combobox_changed)
         _options_details_grid_row += 1
@@ -1040,7 +1066,7 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._autowildcard_mode_checkbutton.set_active(
             self._settings_dict['autowildcard']['user'])
         self._autowildcard_mode_checkbutton.connect(
-            'clicked', self._on_autowildcard_mode_checkbutton)
+            'toggled', self._on_autowildcard_mode_checkbutton)
         _options_details_grid_row += 1
         self._options_details_grid.attach(
             self._autowildcard_mode_checkbutton,
@@ -1112,7 +1138,7 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._use_dark_theme_checkbutton.set_active(
             self._settings_dict['darktheme']['user'])
         self._use_dark_theme_checkbutton.connect(
-            'clicked', self._on_use_dark_theme_checkbutton)
+            'toggled', self._on_use_dark_theme_checkbutton)
         _options_details_grid_row += 1
         self._options_details_grid.attach(
             self._use_dark_theme_checkbutton,
@@ -1132,22 +1158,19 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         self._error_sound_checkbutton.set_active(
             self._settings_dict['errorsound']['user'])
         self._error_sound_checkbutton.connect(
-            'clicked', self._on_error_sound_checkbutton)
+            'toggled', self._on_error_sound_checkbutton)
         self._error_sound_file_button = Gtk.Button()
-        self._error_sound_file_button_box = Gtk.HBox()  # pylint: disable=c-extension-no-member
-        self._error_sound_file_button_label = Gtk.Label()
-        self._error_sound_file_button_label.set_text(
-            self._settings_dict['errorsoundfile']['user'])
-        self._error_sound_file_button_label.set_use_markup(True)
-        self._error_sound_file_button_label.set_max_width_chars(
-            40)
-        self._error_sound_file_button_label.set_line_wrap(False)
+        self._error_sound_file_button_box = Gtk.Box()
+        self._error_sound_file_button_label = Gtk.Label(
+            label=self._settings_dict['errorsoundfile']['user'],
+            use_markup=True)
+        self._error_sound_file_button_label.set_max_width_chars(40)
+        set_label_wrap_mode(self._error_sound_file_button_label, False)
         self._error_sound_file_button_label.set_ellipsize(
             Pango.EllipsizeMode.START)
-        self._error_sound_file_button_box.pack_start(
-            self._error_sound_file_button_label, False, False, 0)
-        self._error_sound_file_button.add(
-            self._error_sound_file_button_box)
+        add_child(self._error_sound_file_button_box,
+                  self._error_sound_file_button_label)
+        add_child(self._error_sound_file_button, self._error_sound_file_button_box)
         self._error_sound_file_button.connect(
             'clicked', self._on_error_sound_file_button)
         _options_details_grid_row += 1
@@ -1212,14 +1235,14 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             else:
                 button.set_active(False)
             button.connect(
-                'clicked', self._on_input_method_menu_checkbutton)
+                'toggled', self._on_input_method_menu_checkbutton)
             self._input_method_menu_grid.attach(
                 button, 0, _input_method_menu_grid_row, 1, 1)
             item[2] = button
 
-        self.show_all() # pylint: disable=no-member
+        show_all(self)
 
-        self._notebook.set_current_page(0) # Has to be after show_all()
+        notebook.set_current_page(0) # Has to be after show_all()
 
         self._gsettings.connect('changed', self._on_gsettings_value_changed)
 
@@ -1582,41 +1605,6 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         dialog.run()
         dialog.destroy()
 
-    def _run_are_you_sure_dialog(self, message: str) -> Gtk.ResponseType:
-        '''
-        Run a dialog to show a “Are you sure?” message.
-
-        Returns Gtk.ResponseType.OK or Gtk.ResponseType.CANCEL (an enum)
-        '''
-        confirm_question = Gtk.Dialog(
-            title=_('Are you sure?'),
-            parent=self)
-        confirm_question.add_button(_('_Cancel'), Gtk.ResponseType.CANCEL)
-        confirm_question.add_button(_('_OK'), Gtk.ResponseType.OK)
-        box = confirm_question.get_content_area()
-        label = Gtk.Label()
-        label.set_text(
-            '<span size="large" color="#ff0000"><b>'
-            + html.escape(message)
-            + '</b></span>')
-        label.set_use_markup(True)
-        label.set_max_width_chars(40)
-        label.set_line_wrap(True)
-        label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        label.set_xalign(0)
-        margin = 10
-        label.set_margin_start(margin)
-        label.set_margin_end(margin)
-        label.set_margin_top(margin)
-        label.set_margin_bottom(margin)
-        box.add(label)
-        confirm_question.show_all()
-        response = confirm_question.run()
-        confirm_question.destroy()
-        while Gtk.events_pending():  # pylint: disable=c-extension-no-member
-            Gtk.main_iteration()  # pylint: disable=c-extension-no-member
-        return response
-
     def check_instance(self) -> bool:
         '''
         Check whether another instance of the setup tool is running already
@@ -1630,32 +1618,15 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         else:
             return False
 
-    @staticmethod
-    def _on_delete_event(*_args: Any) -> None:
-        '''The window has been deleted, probably by the window manager.'''
-        LOGGER.info('Window deleted by the window manager.')
+    def _on_close(self, *_args: Any) -> bool: # pylint: disable=no-self-use, unused-argument
+        '''Main window has been closed, quit the glib main loop'''
+        LOGGER.info('Window is closing.')
         if glib_main_loop is not None:
             glib_main_loop.quit()
         else:
             raise RuntimeError("glib_main_loop not initialized!")
-
-    @staticmethod
-    def _on_destroy_event(*_args: Any) -> None:
-        '''The window has been destroyed.'''
-        LOGGER.info('Window destroyed.')
-        if glib_main_loop is not None:
-            glib_main_loop.quit()
-        else:
-            raise RuntimeError("glib_main_loop not initialized!")
-
-    @staticmethod
-    def _on_close_clicked(_button: Gtk.Button) -> None:
-        '''The button to close the dialog has been clicked.'''
-        LOGGER.info('Close button clicked.')
-        if glib_main_loop is not None:
-            glib_main_loop.quit()
-        else:
-            raise RuntimeError("glib_main_loop not initialized!")
+        # Gtk3 expects a boolean return value, Gtk4 ignores the return value:
+        return False
 
     def _on_gsettings_value_changed(
             self, _settings: Gio.Settings, key: str) -> None:
@@ -1677,37 +1648,48 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         LOGGER.error('Unknown key\n')
         return
 
-    @staticmethod
-    def _on_about_button_clicked(_button: Gtk.Button) -> None:
+    def _on_about_button_clicked(  # pylint: disable=no-self-use
+            self, button: Gtk.Button) -> None:
         '''
         The “About” button has been clicked
 
-        :param _button: The “About” button
+        :param button: The “About” button
         '''
-        it_util.ItAboutDialog()
+        it_util.ItAboutDialog(parent=get_toplevel_window(button))
 
     def _on_restore_all_defaults_button_clicked(
             self, _button: Gtk.Button) -> None:
-        '''
-        Restore all default settings
-        '''
+        '''Restore all default settings'''
         self._restore_all_defaults_button.set_sensitive(False)
-        response = self._run_are_you_sure_dialog(
-            # Translators: This is the text in the centre of a small
-            # dialog window, trying to confirm whether the user is
-            # really sure to restore all default settings.
-            _('Do you really want to restore all default settings?'))
-        if response == Gtk.ResponseType.OK:
+
+        def really_restore() -> None:
             LOGGER.info('Restoring all defaults.')
-            for value in self._settings_dict.values():
+            self._restore_all_defaults_button.set_sensitive(True)
+            for key, value in self._settings_dict.items():
+                LOGGER.info('Resetting gsettingss key=%s', key)
                 value['set_function'](value['default'], update_gsettings=True)
                 # Call it again with update_gsettings=False to make
                 # sure the active state of checkbuttons etc.  is
                 # updated immediately:
                 value['set_function'](value['default'], update_gsettings=False)
-        else:
+
+        def cancelled() -> None:
             LOGGER.info('Restore all defaults cancelled.')
-        self._restore_all_defaults_button.set_sensitive(True)
+            self._restore_all_defaults_button.set_sensitive(True)
+
+        dialog = ConfirmDialogCompat(
+            parent=self,
+            # Translators: This is the text in the centre of a small
+            # dialog window, trying to confirm whether the user is
+            # really sure to restore all default settings.
+            question=_('Do you really want to restore all default settings?'),
+            title=_('Are you sure?'),
+            ok_label=_('_OK'),
+            cancel_label=_('_Cancel'),
+            on_ok=really_restore,
+            on_cancel=cancelled,
+        )
+        dialog.show()
 
     def _on_single_wildcard_char_entry(
             self, widget: Gtk.Entry, _property_spec: Any) -> None:
@@ -1892,18 +1874,33 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         The button to select forget how often candidates were used
         '''
         self._dynamic_adjust_forget_button.set_sensitive(False)
-        response = self._run_are_you_sure_dialog(
+
+        def really_forget() ->  None:
+            LOGGER.info('Forgetting dynamic adjustments.')
+            self._dynamic_adjust_forget_button.set_sensitive(True)
+            self.tabsqlitedb.remove_all_phrases_from_user_db()
+
+        def cancelled() -> None:
+            LOGGER.info('Forget dynamic adjustments cancelled.')
+            self._dynamic_adjust_forget_button.set_sensitive(True)
+
+        dialog = ConfirmDialogCompat(
+            parent=self,
             # Translators: This is the text in the centre of a small
             # dialog window, trying to confirm whether the user is
             # really sure to to delete all the data
             # ibus-table has learned from typing and selecting candidates.
             # Deleting this learned data cannot be reversed. So
             # the user should be really sure he really wants to do that.
-            _('Do you really want to delete all '
-              + 'data learned from typing and selecting candidates?'))
-        if response == Gtk.ResponseType.OK:
-            self.tabsqlitedb.remove_all_phrases_from_user_db()
-        self._dynamic_adjust_forget_button.set_sensitive(True)
+            question=_('Do you really want to delete all '
+                       'data learned from typing and selecting candidates?'),
+            title=_('Are you sure?'),
+            ok_label=_('_OK'),
+            cancel_label=_('_Cancel'),
+            on_ok=really_forget,
+            on_cancel=cancelled,
+        )
+        dialog.show()
 
     def _on_error_sound_checkbutton(self, widget: Gtk.CheckButton) -> None:
         '''
@@ -1919,21 +1916,12 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         The button to select the .wav sound file to be played on error.
         '''
         self._error_sound_file_button.set_sensitive(False)
-        filename = ''
-        chooser = Gtk.FileChooserDialog(
-            title=_('Select .wav sound file:'),
+        filename = choose_file_open(
             parent=self,
-            action=Gtk.FileChooserAction.OPEN)
-        chooser.add_button(_('_Cancel'), Gtk.ResponseType.CANCEL)
-        chooser.add_button(_('_OK'), Gtk.ResponseType.OK)
-        chooser.set_current_folder(os.path.dirname(
-            self._settings_dict['errorsoundfile']['user']))
-        response = chooser.run()
-        if response == Gtk.ResponseType.OK:
-            filename = chooser.get_filename()
-        chooser.destroy()
-        while Gtk.events_pending():  # pylint: disable=c-extension-no-member
-            Gtk.main_iteration()  # pylint: disable=c-extension-no-member
+            title=_('Select .wav sound file:'),
+            initial_folder=(os.path.dirname(
+                self._settings_dict['errorsoundfile']['user'])))
+        LOGGER.info('filename=%r', filename)
         if filename:
             self._error_sound_file_button_label.set_text(
                 filename)
@@ -2036,15 +2024,17 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             self._keybindings_edit_popover_down_button.set_sensitive(False)
 
     def _on_keybindings_edit_popover_add_button_clicked(
-            self, _button: Gtk.Button) -> None:
+            self, *_args: Any) -> None:
         '''
         Signal handler called when the “Add” button to add
         a key binding has been clicked.
         '''
-        key_input_dialog = it_util.ItKeyInputDialog(parent=self)
+        key_input_dialog = it_util.ItKeyInputDialog(
+            parent=self, parent_popover=self._keybindings_edit_popover)
         response = key_input_dialog.run()
         key_input_dialog.destroy()
         if response == Gtk.ResponseType.OK:
+            assert key_input_dialog.e is not None
             keyval, state = key_input_dialog.e
             key = it_util.KeyEvent(keyval, 0, state)
             keybinding = it_util.keyevent_to_keybinding(key)
@@ -2071,7 +2061,7 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             self.set_keybindings(user_keybindings)
 
     def _on_keybindings_edit_popover_up_button_clicked(
-            self, _button: Gtk.Button) -> None:
+            self, *_args: Any) -> None:
         '''
         Signal handler called when the “up” button to move
         a key binding up has been clicked.
@@ -2099,7 +2089,7 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
                     index - 1))
 
     def _on_keybindings_edit_popover_down_button_clicked(
-            self, _button: Gtk.Button) -> None:
+            self, *_args: Any) -> None:
         '''
         Signal handler called when the “down” button to move
         a key binding down has been clicked.
@@ -2148,11 +2138,10 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         if self._keybindings_edit_popover_scroll is None:
             LOGGER.debug('self._keybindings_edit_popover_scroll is None')
             return
-        for child in self._keybindings_edit_popover_scroll.get_children():
-            self._keybindings_edit_popover_scroll.remove(child)
+        clear_children(self._keybindings_edit_popover_scroll)
         self._keybindings_edit_popover_listbox = Gtk.ListBox()
-        self._keybindings_edit_popover_scroll.add(
-            self._keybindings_edit_popover_listbox)
+        add_child(self._keybindings_edit_popover_scroll,
+                  self._keybindings_edit_popover_listbox)
         self._keybindings_edit_popover_selected_keybinding = ''
         self._keybindings_edit_popover_selected_keybinding_index = -1
         self._keybindings_edit_popover_listbox.set_visible(True)
@@ -2175,139 +2164,96 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             label.set_margin_top(margin)
             label.set_margin_bottom(margin)
             self._keybindings_edit_popover_listbox.insert(label, -1)
-        self._keybindings_edit_popover_remove_button.set_sensitive(False)
-        self._keybindings_edit_popover_up_button.set_sensitive(False)
-        self._keybindings_edit_popover_down_button.set_sensitive(False)
-        self._keybindings_edit_popover_listbox.show_all()
+        if self._keybindings_edit_popover_remove_button is not None:
+            self._keybindings_edit_popover_remove_button.set_sensitive(False)
+        if self._keybindings_edit_popover_up_button is not None:
+            self._keybindings_edit_popover_up_button.set_sensitive(False)
+        if self._keybindings_edit_popover_down_button is not None:
+            self._keybindings_edit_popover_down_button.set_sensitive(False)
+        show_all(self._keybindings_edit_popover_listbox)
 
     def _create_and_show_keybindings_edit_popover(self) -> None:
         '''
         Create and show the popover to edit the key bindings for a command
         '''
-        self._keybindings_edit_popover = Gtk.Popover()
-        if self._keybindings_edit_popover is None:
-            LOGGER.debug('self._keybindings_edit_popover is None')
-            return
-        self._keybindings_edit_popover.set_relative_to(
-            self._keybindings_edit_button)
-        self._keybindings_edit_popover.set_position(Gtk.PositionType.RIGHT)
-        self._keybindings_edit_popover.set_vexpand(True)
-        self._keybindings_edit_popover.set_hexpand(True)
-        keybindings_edit_popover_vbox = Gtk.Box()
-        keybindings_edit_popover_vbox.set_orientation(
-            Gtk.Orientation.VERTICAL)
+        self._keybindings_edit_popover = create_popover(
+            pointing_to=self._keybindings_edit_button, position=Gtk.PositionType.RIGHT)
+        popover = self._keybindings_edit_popover
+        popover.set_can_focus(True)
         margin = 12
-        keybindings_edit_popover_vbox.set_margin_start(margin)
-        keybindings_edit_popover_vbox.set_margin_end(margin)
-        keybindings_edit_popover_vbox.set_margin_top(margin)
-        keybindings_edit_popover_vbox.set_margin_bottom(margin)
-        keybindings_edit_popover_vbox.set_spacing(margin)
-        keybindings_edit_popover_label = Gtk.Label()
-        keybindings_edit_popover_label.set_text(
-            _('Edit key bindings for command “%s”')
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=margin)
+        vbox.set_margin_start(margin)
+        vbox.set_margin_end(margin)
+        vbox.set_margin_top(margin)
+        vbox.set_margin_bottom(margin)
+        label = Gtk.Label(
+            label=_('Edit key bindings for command “%s”')
             %self._keybindings_selected_command)
-        keybindings_edit_popover_label.set_use_markup(True)
-        keybindings_edit_popover_label.set_visible(True)
-        keybindings_edit_popover_label.set_halign(Gtk.Align.FILL)
-        keybindings_edit_popover_vbox.pack_start(
-            keybindings_edit_popover_label, False, False, 0)
-        self._keybindings_edit_popover_scroll = Gtk.ScrolledWindow()
-        self._keybindings_edit_popover_scroll.set_hexpand(True)
-        self._keybindings_edit_popover_scroll.set_vexpand(True)
-        self._keybindings_edit_popover_scroll.set_kinetic_scrolling(False)
-        self._keybindings_edit_popover_scroll.set_overlay_scrolling(True)
-        keybindings_edit_popover_vbox.pack_start(
-            self._keybindings_edit_popover_scroll, True, True, 0)
-        keybindings_edit_popover_button_box = Gtk.Box()
-        keybindings_edit_popover_button_box.set_orientation(
-            Gtk.Orientation.HORIZONTAL)
-        keybindings_edit_popover_button_box.set_can_focus(False)
-        keybindings_edit_popover_vbox.add(
-            keybindings_edit_popover_button_box)
-        self._keybindings_edit_popover_add_button = Gtk.Button()
-        keybindings_edit_popover_add_button_label = Gtk.Label()
-        keybindings_edit_popover_add_button_label.set_text(
-            '<span size="xx-large"><b>+</b></span>')
-        keybindings_edit_popover_add_button_label.set_use_markup(True)
-        self._keybindings_edit_popover_add_button.add(
-            keybindings_edit_popover_add_button_label)
-        self._keybindings_edit_popover_add_button.set_tooltip_text(
+        label.set_halign(Gtk.Align.FILL)
+        add_child(vbox, label)
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_hexpand(True)
+        scroll.set_vexpand(True)
+        scroll.set_kinetic_scrolling(False)
+        scroll.set_overlay_scrolling(True)
+        add_child(vbox, scroll)
+        self._keybindings_edit_popover_scroll = scroll
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        button_box.set_can_focus(True)
+        add_child(vbox, button_box)
+        self._keybindings_edit_popover_add_button = CompatButton(
+            label='<span size="xx-large"><b>+</b></span>',
             # Translators: This is a tooltip for the button to add a
             # key binding.
-            _('Add a key binding'))
+            tooltip_text=_('Add a key binding'))
         self._keybindings_edit_popover_add_button.connect(
             'clicked', self._on_keybindings_edit_popover_add_button_clicked)
         self._keybindings_edit_popover_add_button.set_sensitive(True)
-        self._keybindings_edit_popover_remove_button = Gtk.Button()
-        keybindings_edit_popover_remove_button_label = Gtk.Label()
-        keybindings_edit_popover_remove_button_label.set_text(
-            '<span size="xx-large"><b>-</b></span>')
-        keybindings_edit_popover_remove_button_label.set_use_markup(True)
-        self._keybindings_edit_popover_remove_button.add(
-            keybindings_edit_popover_remove_button_label)
-        self._keybindings_edit_popover_remove_button.set_tooltip_text(
+        self._keybindings_edit_popover_remove_button = CompatButton(
+            label='<span size="xx-large"><b>-</b></span>',
             # Translators: This is a tooltip for the button to remove
             # the selected key binding.
-            _('Remove selected key binding'))
+            tooltip_text=_('Remove selected key binding'))
         self._keybindings_edit_popover_remove_button.connect(
             'clicked', self._on_keybindings_edit_popover_remove_button_clicked)
         self._keybindings_edit_popover_remove_button.set_sensitive(False)
-        self._keybindings_edit_popover_default_button = Gtk.Button()
-        self._keybindings_edit_popover_up_button = Gtk.Button()
-        keybindings_edit_popover_up_button_label = Gtk.Label()
-        keybindings_edit_popover_up_button_label.set_text(
-            '<span size="xx-large"><b>↑</b></span>')
-        keybindings_edit_popover_up_button_label.set_use_markup(True)
-        self._keybindings_edit_popover_up_button.add(
-            keybindings_edit_popover_up_button_label)
-        self._keybindings_edit_popover_up_button.set_tooltip_text(
+        self._keybindings_edit_popover_up_button = CompatButton(
+            label='<span size="xx-large"><b>↑</b></span>',
             # Translators: This is a tooltip for the button to move
             # the selected key binding up (higher in priority).
-            _('Move key binding up'))
-        self._keybindings_edit_popover_up_button.connect(
-            'clicked', self._on_keybindings_edit_popover_up_button_clicked)
-        self._keybindings_edit_popover_down_button = Gtk.Button()
-        keybindings_edit_popover_down_button_label = Gtk.Label()
-        keybindings_edit_popover_down_button_label.set_text(
-            '<span size="xx-large"><b>↓</b></span>')
-        keybindings_edit_popover_down_button_label.set_use_markup(True)
-        self._keybindings_edit_popover_down_button.add(
-            keybindings_edit_popover_down_button_label)
-        self._keybindings_edit_popover_down_button.set_tooltip_text(
+            tooltip_text=_('Move key binding up'))
+        connect_fast_click(self._keybindings_edit_popover_up_button,
+                           self._on_keybindings_edit_popover_up_button_clicked)
+        self._keybindings_edit_popover_up_button.set_sensitive(False)
+        self._keybindings_edit_popover_down_button = CompatButton(
+            label='<span size="xx-large"><b>↓</b></span>',
             # Translators: This is a tooltip for the button to move
             # the selected key binding down (lower in priority).
-            _('Move key binding down'))
-        self._keybindings_edit_popover_down_button.connect(
-            'clicked', self._on_keybindings_edit_popover_down_button_clicked)
-        keybindings_edit_popover_default_button_label = Gtk.Label()
-        keybindings_edit_popover_default_button_label.set_text(
-            _('Set to default'))
-        keybindings_edit_popover_default_button_label.set_use_markup(True)
-        self._keybindings_edit_popover_default_button.add(
-            keybindings_edit_popover_default_button_label)
-        self._keybindings_edit_popover_default_button.set_tooltip_text(
+            tooltip_text=_('Move key binding down'))
+        connect_fast_click(self._keybindings_edit_popover_down_button,
+                           self._on_keybindings_edit_popover_down_button_clicked)
+        self._keybindings_edit_popover_down_button.set_sensitive(False)
+        self._keybindings_edit_popover_default_button = CompatButton(
+            label=_('Set to default'),
             # Translators: This is a tooltip for the button to set
             # the key bindings for the selected command to the default.
-            _('Set default key bindings for the selected command'))
+            tooltip_text=_('Set default key bindings for the selected command'))
         self._keybindings_edit_popover_default_button.connect(
             'clicked',
             self._on_keybindings_edit_popover_default_button_clicked)
         self._keybindings_edit_popover_default_button.set_sensitive(True)
-        keybindings_edit_popover_button_box.add(
-            self._keybindings_edit_popover_add_button)
-        keybindings_edit_popover_button_box.add(
-            self._keybindings_edit_popover_remove_button)
-        keybindings_edit_popover_button_box.add(
-            self._keybindings_edit_popover_up_button)
-        keybindings_edit_popover_button_box.add(
-            self._keybindings_edit_popover_down_button)
-        keybindings_edit_popover_button_box.add(
-            self._keybindings_edit_popover_default_button)
-        self._keybindings_edit_popover.add(keybindings_edit_popover_vbox)
+        add_child(button_box, self._keybindings_edit_popover_add_button)
+        add_child(button_box, self._keybindings_edit_popover_remove_button)
+        add_child(button_box, self._keybindings_edit_popover_up_button)
+        add_child(button_box, self._keybindings_edit_popover_down_button)
+        add_child(button_box, self._keybindings_edit_popover_default_button)
         self._fill_keybindings_edit_popover_listbox()
-        if GTK_VERSION >= (3, 22, 0):
-            self._keybindings_edit_popover.popup()
-        self._keybindings_edit_popover.show_all()
+        add_child(popover, vbox)
+        (window_width, window_height) = get_window_size(self)
+        desired_width = int(window_width * 0.5)
+        desired_height = int(window_height * 0.5)
+        popover.set_size_request(desired_width, desired_height)
+        self._popup_manager.popup(popover, kind=PopupKind.KEYBINDINGS_EDIT)
 
     def _on_keybindings_edit_button_clicked(
             self, _button: Gtk.Button) -> None:
@@ -2337,17 +2283,33 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         all key bindings top their defaults has been clicked.
         '''
         self._keybindings_all_default_button.set_sensitive(False)
-        response = self._run_are_you_sure_dialog(
+
+        def really_restore() -> None:
+            LOGGER.info('Setting all keybindings to default')
+            default_keybindings = self._settings_dict['keybindings']['default']
+            self.set_keybindings(default_keybindings)
+            self._keybindings_all_default_button.set_sensitive(True)
+
+        def cancelled() -> None:
+            LOGGER.info('Set all keybindings to default cancelled.')
+            self._keybindings_all_default_button.set_sensitive(True)
+
+        dialog = ConfirmDialogCompat(
+            parent=self,
             # Translators: This is the text in the centre of a small
             # dialog window, trying to confirm whether the user is
             # really sure to reset the key bindings for *all* commands
             # to their defaults. This cannot be reversed so the user
             # should be really sure he wants to do that.
-            _('Do you really want to set the key bindings for '
-              + 'all commands to their defaults?'))
-        if response == Gtk.ResponseType.OK:
-            self.set_keybindings(self._settings_dict['keybindings']['default'])
-        self._keybindings_all_default_button.set_sensitive(True)
+            question=_('Do you really want to set the key bindings for '
+                       + 'all commands to their defaults?'),
+            title=_('Are you sure?'),
+            ok_label=_('_OK'),
+            cancel_label=_('_Cancel'),
+            on_ok=really_restore,
+            on_cancel=cancelled,
+        )
+        dialog.show()
 
     def _on_input_method_menu_checkbutton(self, _widget: Gtk.CheckButton) -> None:
         '''
@@ -2384,7 +2346,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
                 'singlewildcardchar',
                 GLib.Variant.new_string(single_wildcard_char))
         else:
-            self._single_wildcard_char_entry.set_text(single_wildcard_char)
+            set_entry_text_preserve_cursor(
+                self._single_wildcard_char_entry, single_wildcard_char)
 
     def set_multi_wildcard_char(self,
                                 multi_wildcard_char: str,
@@ -2407,7 +2370,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
                 'multiwildcardchar',
                 GLib.Variant.new_string(multi_wildcard_char))
         else:
-            self._multi_wildcard_char_entry.set_text(multi_wildcard_char)
+            set_entry_text_preserve_cursor(
+                self._multi_wildcard_char_entry, multi_wildcard_char)
 
     def set_page_size(self,
                       page_size: int,
@@ -2460,8 +2424,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
                 for index, item in enumerate(
                         self._lookup_table_orientation_store):
                     if orientation == item[1]:
-                        self._lookup_table_orientation_combobox.set_active(
-                            index)
+                        combobox_set_active(self._lookup_table_orientation_combobox,
+                                            self._lookup_table_orientation_store, index)
 
     def set_input_mode(self,
                        input_mode: int = 1,
@@ -2512,7 +2476,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         else:
             for index, item in enumerate(self._remember_input_mode_store):
                 if remember_input_mode == item[1]:
-                    self._remember_input_mode_combobox.set_active(index)
+                    combobox_set_active(self._remember_input_mode_combobox,
+                                        self._remember_input_mode_store, index)
 
     def set_chinese_mode(self,
                          chinese_mode: int = 0,
@@ -2544,7 +2509,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             else:
                 for index, item in enumerate(self._chinese_mode_store):
                     if chinese_mode == item[1]:
-                        self._chinese_mode_combobox.set_active(index)
+                        combobox_set_active(self._chinese_mode_combobox,
+                                            self._chinese_mode_store, index)
 
     def set_onechar_mode(self,
                          mode: bool = False,
@@ -2572,7 +2538,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         else:
             for index, item in enumerate(self._onechar_mode_store):
                 if mode == item[1]:
-                    self._onechar_mode_combobox.set_active(index)
+                    combobox_set_active(self._onechar_mode_combobox,
+                                        self._onechar_mode_store, index)
 
     def set_autoselect_mode(self,
                             mode: bool = False,
@@ -2625,7 +2592,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
         else:
             for index, item in enumerate(self._autocommit_mode_store):
                 if mode == item[1]:
-                    self._autocommit_mode_combobox.set_active(index)
+                    combobox_set_active(self._autocommit_mode_combobox,
+                                        self._autocommit_mode_store, index)
 
     def set_commit_invalid_mode(self,
                          mode: int = 0,
@@ -2659,7 +2627,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             else:
                 for index, item in enumerate(self._commit_invalid_mode_store):
                     if mode == item[1]:
-                        self._commit_invalid_mode_combobox.set_active(index)
+                        combobox_set_active(self._commit_invalid_mode_combobox,
+                                            self._commit_invalid_mode_store, index)
 
     def set_autowildcard_mode(self,
                               mode: bool = False,
@@ -2711,8 +2680,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             for index, item in enumerate(
                     self._table_full_width_letter_mode_store):
                 if mode == item[1]:
-                    self._table_full_width_letter_mode_combobox.set_active(
-                        index)
+                    combobox_set_active(self._table_full_width_letter_mode_combobox,
+                                        self._table_full_width_letter_mode_store, index)
 
     def set_table_full_width_punct_mode(
             self,
@@ -2740,8 +2709,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             for index, item in enumerate(
                     self._table_full_width_punct_mode_store):
                 if mode == item[1]:
-                    self._table_full_width_punct_mode_combobox.set_active(
-                        index)
+                    combobox_set_active(self._table_full_width_punct_mode_combobox,
+                                        self._table_full_width_punct_mode_store, index)
 
     def set_direct_full_width_letter_mode(
             self,
@@ -2769,8 +2738,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             for index, item in enumerate(
                     self._direct_full_width_letter_mode_store):
                 if mode == item[1]:
-                    self._direct_full_width_letter_mode_combobox.set_active(
-                        index)
+                    combobox_set_active(self._direct_full_width_letter_mode_combobox,
+                                        self._direct_full_width_letter_mode_store, index)
 
     def set_direct_full_width_punct_mode(
             self,
@@ -2798,8 +2767,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
             for index, item in enumerate(
                     self._direct_full_width_punct_mode_store):
                 if mode == item[1]:
-                    self._direct_full_width_punct_mode_combobox.set_active(
-                        index)
+                    combobox_set_active(self._direct_full_width_punct_mode_combobox,
+                                        self._direct_full_width_punct_mode_store, index)
 
     def set_always_show_lookup(
             self,
@@ -3053,7 +3022,8 @@ class SetupUI(Gtk.Window):  # type: ignore[misc]
                     else:
                         button.set_active(False)
 
-class HelpWindow(Gtk.Window): # type: ignore[misc]
+# pylint: disable=too-few-public-methods
+class HelpWindow(Gtk.Window):  # type: ignore[misc]
     '''
     A window to show help
 
@@ -3062,22 +3032,22 @@ class HelpWindow(Gtk.Window): # type: ignore[misc]
     :param contents: Contents of the help window
     '''
     def __init__(self,
-                 parent: Gtk.Window = None,
+                 parent: Optional[Gtk.Window] = None,
                  title: str = '',
                  contents: str = '') -> None:
         Gtk.Window.__init__(self, title=title)
-        if parent:
-            self.set_parent(parent)
+        self.set_destroy_with_parent(False)
+        if parent is not None:
             self.set_transient_for(parent)
             # to receive mouse events for scrolling and for the close
             # button
             self.set_modal(True)
-        self.set_destroy_with_parent(False)
+            self.set_destroy_with_parent(True)
         self.set_default_size(600, 500)
         self.vbox = Gtk.Box()
         self.vbox.set_orientation(Gtk.Orientation.VERTICAL)
         self.vbox.set_spacing(0)
-        self.add(self.vbox)
+        add_child(self, self.vbox)
         self.text_buffer = Gtk.TextBuffer()
         self.text_buffer.insert_at_cursor(contents)
         self.text_view = Gtk.TextView()
@@ -3089,23 +3059,28 @@ class HelpWindow(Gtk.Window): # type: ignore[misc]
         self.scrolledwindow = Gtk.ScrolledWindow()
         self.scrolledwindow.set_hexpand(True)
         self.scrolledwindow.set_vexpand(True)
-        self.scrolledwindow.add(self.text_view)
-        self.vbox.pack_start(self.scrolledwindow, True, True, 0)
+        add_child(self.scrolledwindow, self.text_view)
+        add_child(self.vbox, self.scrolledwindow)
         self.close_button = Gtk.Button()
         self.close_button_label = Gtk.Label()
         self.close_button_label.set_text_with_mnemonic(_('_Close'))
-        self.close_button.add(self.close_button_label)
+        add_child(self.close_button, self.close_button_label)
+        self.close_button.set_hexpand(True)
+        self.close_button.set_halign(Gtk.Align.END)
         self.close_button.connect("clicked", self._on_close_button_clicked)
-        self.hbox = Gtk.HBox(spacing=0)  # pylint: disable=c-extension-no-member
-        self.hbox.pack_end(self.close_button, False, False, 0)
-        self.vbox.pack_start(self.hbox, False, False, 5)
-        self.show_all()
+        self.hbox = Gtk.Box(spacing=0)
+        self.hbox.set_orientation(Gtk.Orientation.HORIZONTAL)
+        self.hbox.set_spacing(0)
+        add_child(self.hbox, self.close_button)
+        add_child(self.vbox, self.hbox)
+        show_all(self)
 
     def _on_close_button_clicked(self, _button: Gtk.Button) -> None:
         '''
         Close the input method help window when the close button is clicked
         '''
         self.destroy()
+# pylint: enable=too-few-public-methods
 
 def quit_glib_main_loop(
         signum: int, _frame: Optional[FrameType] = None) -> None:
@@ -3156,13 +3131,13 @@ if __name__ == '__main__':
         locale.setlocale(locale.LC_ALL, 'C')
     i18n_init()
     if IBus.get_address() is None:  # pylint: disable=no-value-for-parameter
-        DIALOG = Gtk.MessageDialog(
-            modal=True,
+        MessageDialogCompat(
+            parent=None,
+            message=_('ibus is not running.'),
             message_type=Gtk.MessageType.ERROR,
-            buttons=Gtk.ButtonsType.OK,
-            text=_('ibus is not running.'))
-        DIALOG.run()
-        DIALOG.destroy()
+            title='⛔',
+            button_label=_('_OK'),
+        ).show()
         sys.exit(1)
     ENGINE_NAME = _ARGS.engine_name
     if not ENGINE_NAME and 'IBUS_ENGINE_NAME' in os.environ:
