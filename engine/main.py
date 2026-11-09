@@ -210,7 +210,7 @@ class IMApp:
                                      icon=icon,
                                      layout=layout,
                                      symbol=symbol,
-                                     setupdsis=setup_arg)
+                                     setup=setup_arg)
             self.__component.add_engine(engine)
             self.__bus.register_component(self.__component)
 
