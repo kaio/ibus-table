@@ -12,8 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://github.com/mike-fabian/ibus-table/issues\n"
 "POT-Creation-Date: 2026-11-09 19:16+0100\n"
 "PO-Revision-Date: 2026-11-09 18:59+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: Mike FABIAN <mfabian@redhat.com>\n"
 "Language-Team: Chinese (Traditional Han script, Hong Kong) <https://"
 "translate.fedoraproject.org/projects/ibus-table/app/zh_Hant_HK/>\n"
 "Language: zh_HK\n"
@@ -338,7 +337,7 @@ msgstr "線上文件："
 
 #: engine/g_compat_helpers.py:1197
 msgid "Open File ..."
-msgstr "開啟檔案"
+msgstr "開啟檔案 ..."
 
 #: org.freedesktop.ibus.engine.table.metainfo.xml.in:6
 msgid "Ibus Table"
