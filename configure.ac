@@ -24,8 +24,8 @@ m4_define([package_name], [ibus-table])
 # if not 1, append datestamp to the version number.
 m4_define([ibus_released], [1])
 m4_define([ibus_major_version], [1])
-m4_define([ibus_minor_version], [18])
-m4_define([ibus_micro_version], [2])
+m4_define([ibus_minor_version], [19])
+m4_define([ibus_micro_version], [0])
 m4_define(ibus_maybe_datestamp,
     m4_esyscmd([if test ]ibus_released[ != 1; then date +.%Y%m%d | tr -d '\n\r'; fi]))
 

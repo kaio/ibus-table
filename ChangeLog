@@ -1,4 +1,248 @@
-commit 34c78a9cda721d854c2c5f14003b17c3267131bb
+commit e121ca9a7a1aed6f73feec75e06f3b9afbdd1be9
+Author: Mike FABIAN <mfabian@redhat.com>
+Date:   Mon Nov 9 20:16:40 2026 +0100
+
+    Release 1.19.0
+
+commit dce8b24b9a3817b5ed9b5c7a695c04dd6fff6ade
+Author: Mike FABIAN <mfabian@redhat.com>
+Date:   Tue Nov 3 16:31:17 2026 +0100
+
+    Port setup tool to Gtk4̣. Only test_0_gtk.py still uses Gtk3.
+    
+    Resolves: https://github.com/mike-fabian/ibus-table/issues/255
+    
+    Gtk4 is used by default if available on the system, if not Gtk3 is used as a fallback.
+    
+    To override the default one can use:
+    
+    `IT_GTK_VERSION=3 python3 setup/main.py -n cangjie5`
+    
+    or
+    
+    `IT_GTK_VERSION=4 python3 setup/main.py -n cangjie5`
+    
+    Except for test_0_gtk.py, which is not ported to Gtk4.  If called
+    without IT_GTK_VERSION in the environment, it sets IT_GTK_VERSION=3
+    internally before loading Gdk/Gtk to default to Gtk3. Probably it is
+    better to write a new graphical test case for Gtk4 instead of porting
+    this old test case.
+
+commit 2846c622763eeea740d0a79d165dce7d693e38c1
+Author: Mike FABIAN <mfabian@redhat.com>
+Date:   Mon Nov 9 18:47:25 2026 +0100
+
+    Fix typo introduced by a merge commit in 2013
+    
+    commit 4d18a67d8b0bc0fbe0999f330769707611d11eea
+    Merge: cd11209 2467638
+    Author: mozbugbox <mozbugbox@yahoo.com.au>
+    Date:   Sat May 18 17:46:20 2013 +0800
+    
+        Merge remote-tracking branch 'kaio/1.7' into ascii-with-empty-canadidate
+    
+        Conflicts:
+                engine/main.py
+                engine/table.py
+    
+    [...]
+    diff --cc engine/main.py
+    index 051fc0a,c620fde..ae82af4
+    --- a/engine/main.py
+    +++ b/engine/main.py
+    @@@ -111,17 -107,15 +113,17 @@@ class IMApp
+                      if not os.access( icon, os.F_OK):
+                          icon = ''
+                  layout = self.__factory.db.get_ime_property ("layout")
+     +            setup_arg = "{} {}".format(setup_cmd, name)
+    -             engine = ibus.EngineDesc(name,
+    -                                         longname,
+    -                                         description,
+    -                                         language,
+    -                                         license,
+    -                                         author,
+    -                                         icon,
+    -                                         layout,
+    -                                         setup=setup_arg)
+    -             self.__component.add_engines([engine])
+    +             engine = IBus.EngineDesc(name=name,
+     -                                    longname=longname,
+     -                                    description=description,
+     -                                    language=language,
+     -                                    license=license,
+     -                                    author=author,
+     -                                    icon=icon,
+     -                                    layout=layout)
+     -            self.__component.add_engine(engine)
+    ++                                        longname=longname,
+    ++                                        description=description,
+    ++                                        language=language,
+    ++                                        license=license,
+    ++                                        author=author,
+    ++                                        icon=icon,
+    ++                                        layout=layout,
+    ++                                        setupdsis=setup_arg)
+    ++            self.__component.add_engines(engine)
+                  self.__bus.register_component(self.__component)
+    
+    There is another error in this merge, `self.__component.add_engines(engine)` is
+    wrong, should be `self.__component.add_engine(engine)`. But this has
+    already been fixed in:
+    
+    commit 13ccd7c78be2b572a222ca8e43cb277ed5e769de
+    Author: Mike FABIAN <mfabian@redhat.com>
+    Date:   Fri Aug 10 16:24:32 2018 +0200
+    
+        Fix some pylint warnings
+
+commit 5a9d6d3447ff1067ce2a0c0f8460246b6626769c
+Author: Mike FABIAN <mfabian@redhat.com>
+Date:   Mon Nov 9 18:59:14 2026 +0000
+
+    Translated using Weblate (Portuguese (Portugal))
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Chinese (Traditional Han script, Hong Kong))
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Co-authored-by: Mike FABIAN <mfabian@redhat.com>
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/pt_PT/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/zh_Hant_HK/
+    Translation: ibus-table/app
+
+commit dcfe11696283fc1516b67bda8a210f2f490626f2
+Author: Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>
+Date:   Mon Nov 9 18:59:14 2026 +0000
+
+    Translated using Weblate (Korean)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Lao)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Hungarian)
+    
+    Currently translated at 51.2% (79 of 154 strings)
+    
+    Translated using Weblate (Romanian)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Kabyle)
+    
+    Currently translated at 42.2% (65 of 154 strings)
+    
+    Translated using Weblate (Greek)
+    
+    Currently translated at 43.5% (67 of 154 strings)
+    
+    Translated using Weblate (Russian)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Georgian)
+    
+    Currently translated at 75.9% (117 of 154 strings)
+    
+    Translated using Weblate (Persian)
+    
+    Currently translated at 18.1% (28 of 154 strings)
+    
+    Translated using Weblate (Turkish)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Chinese (Traditional) (zh_TW))
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Chinese (Traditional Han script, Hong Kong))
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Chinese (Simplified) (zh_CN))
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Ukrainian)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Portuguese (Brazil))
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Japanese)
+    
+    Currently translated at 55.8% (86 of 154 strings)
+    
+    Translated using Weblate (French)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Spanish)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (German)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Translated using Weblate (Czech)
+    
+    Currently translated at 98.0% (151 of 154 strings)
+    
+    Translated using Weblate (Catalan)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Co-authored-by: Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/ca/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/cs/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/de/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/el/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/es/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/fa/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/fr/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/hu/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/ja/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/ka/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/kab/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/ko/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/lo/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/pt_BR/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/ro/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/ru/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/tr/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/uk/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/zh_CN/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/zh_Hant_HK/
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/zh_TW/
+    Translation: ibus-table/app
+
+commit 008a7cb19fbea9f32540cea52c009e588f47538d
+Author: Hosted Weblate <hosted@weblate.org>
+Date:   Mon Nov 9 18:59:13 2026 +0000
+
+    Update translation files
+    
+    Updated by "Update PO files to match POT (msgmerge)" hook in Weblate.
+    
+    Co-authored-by: Hosted Weblate <hosted@weblate.org>
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/
+    Translation: ibus-table/app
+
+commit a5d59b160b35e67ddccce4639bf52c820d051b15
+Author: Mike FABIAN <mfabian@redhat.com>
+Date:   Mon Nov 9 19:35:07 2026 +0100
+
+    Update ibus-table.pot (One new message)
+
+commit 269b1bd58dab149022944c1fc060250475b1c4bd
 Author: Mike FABIAN <mfabian@redhat.com>
 Date:   Fri Oct 30 22:24:48 2026 +0100
 

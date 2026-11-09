@@ -40,6 +40,32 @@
   <url type="translate">https://translate.fedoraproject.org/projects/ibus-table/</url>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="1.19.0" date="2026-11-09" urgency="medium">
+      <url>https://github.com/mike-fabian/ibus-table/releases/tag/1.19.0</url>
+      <description>
+        <p>This new stable release includes these changes:</p>
+        <ul>
+          <li>
+            Port setup tool to Gtk4̣. Only test_0_gtk.py still uses
+            Gtk3.  To override the default one can use:
+            `IT_GTK_VERSION=3 python3 setup/main.py -n cangjie5` or
+            `IT_GTK_VERSION=4 python3 setup/main.py -n cangjie5`
+            (Resolves: github-mike-fabian-issue#255)
+          </li>
+          <li>
+            Fix typo introduced by a merge commit in 2013
+          </li>
+          <li>
+            Translation update from Weblate (de 100%, ca 100%, cs 98.0%, el 43.5%, es 100%, fa 18.1%, fr 100%, hu 51.2%, ja 55.8%, ka 75.9%, kab 42.2%, ko 100%, lo 100%, pt_BR 100%, ro 100%, ru 100%, tr 100%, uk 100%, zh_CN 100%, zh_HK 100%, zh_TW 100%)
+          </li>
+        </ul>
+      </description>
+      <issues>
+        <issue url="https://github.com/mike-fabian/ibus-table/issues/255">
+          github-mike-fabian-issue#255
+        </issue>
+      </issues>
+    </release>
     <release version="1.18.2" date="2026-10-30" urgency="medium">
       <url>https://github.com/mike-fabian/ibus-table/releases/tag/1.18.2</url>
       <description>
