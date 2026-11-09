@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/mike-fabian/ibus-table/issues\n"
-"POT-Creation-Date: 2026-09-02 18:19+0200\n"
+"POT-Creation-Date: 2026-11-09 19:16+0100\n"
 "PO-Revision-Date: 2026-09-07 08:43+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/ibus-"
@@ -24,7 +24,7 @@ msgstr ""
 #. when one wants to input only Simplified Chinese.
 #. Translators: This is the setting to use only
 #. simplified Chinese
-#: engine/table.py:680 setup/main.py:391
+#: engine/table.py:680 setup/main.py:434
 msgid "Simplified Chinese"
 msgstr "გამარტივებული ჩინური"
 
@@ -36,7 +36,7 @@ msgstr "გადართვა \"მხოლოდ გამარტივ�
 #. when one wants to input only Traditonal Chinese
 #. Translators: This is the setting to use only
 #. traditional Chinese
-#: engine/table.py:689 setup/main.py:395
+#: engine/table.py:689 setup/main.py:438
 msgid "Traditional Chinese"
 msgstr "ტრადიციული ჩინური"
 
@@ -78,7 +78,7 @@ msgstr "გადართვა \"ტრადიციულ ჩინურ�
 #. Translators: This is the setting to use both
 #. simplified and traditional Chinese in no
 #. particular order
-#: engine/table.py:725 setup/main.py:410
+#: engine/table.py:725 setup/main.py:453
 msgid "All Chinese characters"
 msgstr "ყველა ჩინური სიმბოლო"
 
@@ -86,7 +86,7 @@ msgstr "ყველა ჩინური სიმბოლო"
 msgid "Switch to “All Chinese characters”."
 msgstr ""
 
-#: engine/table.py:730 setup/main.py:1194
+#: engine/table.py:730 setup/main.py:1217
 msgid "Chinese mode"
 msgstr "ჩინური რეჟიმი"
 
@@ -110,7 +110,7 @@ msgstr "ჩინური"
 msgid "Switch to Chinese input"
 msgstr "ჩინურზე გადართვა"
 
-#: engine/table.py:759 engine/table.py:907 setup/main.py:961
+#: engine/table.py:759 engine/table.py:907 setup/main.py:985
 msgid "Direct"
 msgstr "პირდაპირი"
 
@@ -142,8 +142,8 @@ msgstr "შეყვანის რეჟიმის გადართვა"
 #. while in “Direct input” mode.
 #. Translators: This is the mode to use half width punctuation
 #. while in “Direct input” mode.
-#: engine/table.py:785 engine/table.py:807 setup/main.py:447 setup/main.py:491
-#: setup/main.py:536 setup/main.py:581
+#: engine/table.py:785 engine/table.py:807 setup/main.py:491 setup/main.py:536
+#: setup/main.py:581 setup/main.py:627
 msgid "Half"
 msgstr "ნახევარი"
 
@@ -159,8 +159,8 @@ msgstr ""
 #. while in “Direct input” mode.
 #. Translators: This is the mode to use full width punctuation
 #. while in “Direct input” mode.
-#: engine/table.py:791 engine/table.py:813 setup/main.py:451 setup/main.py:495
-#: setup/main.py:540 setup/main.py:585
+#: engine/table.py:791 engine/table.py:813 setup/main.py:495 setup/main.py:540
+#: setup/main.py:585 setup/main.py:631
 msgid "Full"
 msgstr "სრული"
 
@@ -168,7 +168,7 @@ msgstr "სრული"
 msgid "Switch to fullwidth letters"
 msgstr ""
 
-#: engine/table.py:796 setup/main.py:1195
+#: engine/table.py:796 setup/main.py:1218
 msgid "Letter width"
 msgstr "ასოს სიგანე"
 
@@ -184,7 +184,7 @@ msgstr "ნახევარსიგანიანი პუნქტუა�
 msgid "Switch to fullwidth punctuation"
 msgstr "სრულსიგანიანი პუნქტუაციის რეჟიმზე გადართვა"
 
-#: engine/table.py:818 setup/main.py:1196
+#: engine/table.py:818 setup/main.py:1219
 msgid "Punctuation width"
 msgstr "პუნქტუაციის სიგანე"
 
@@ -204,7 +204,7 @@ msgstr "პინინი"
 msgid "Switch to pinyin mode"
 msgstr "პინინის რეჟიმზე გადართვა"
 
-#: engine/table.py:840 setup/main.py:1197
+#: engine/table.py:840 setup/main.py:1220
 msgid "Pinyin mode"
 msgstr "ფინინის რეჟიმი"
 
@@ -224,7 +224,7 @@ msgstr "შეთავაზების რეჟიმზე გადარ�
 msgid "Suggestion enabled"
 msgstr "შეთავაზება ჩართულია"
 
-#: engine/table.py:862 setup/main.py:1198
+#: engine/table.py:862 setup/main.py:1221
 msgid "Suggestion mode"
 msgstr "შეთავაზებია რეჟიმი"
 
@@ -248,7 +248,7 @@ msgstr "დამთხვევა ერთი სიმბოლოთი"
 msgid "Switch to matching only single characters"
 msgstr ""
 
-#: engine/table.py:886 setup/main.py:1199
+#: engine/table.py:886 setup/main.py:1222
 msgid "Onechar mode"
 msgstr "ერთსიმბოლოიანი რეჟიმი"
 
@@ -256,7 +256,7 @@ msgstr "ერთსიმბოლოიანი რეჟიმი"
 msgid "Switch onechar mode"
 msgstr "ერთსიმბოლოიანი რეჟიმის გადართვა"
 
-#: engine/table.py:897 setup/main.py:959
+#: engine/table.py:897 setup/main.py:984
 msgid "Normal"
 msgstr "ჩვეულებრივი"
 
@@ -272,7 +272,7 @@ msgid ""
 "application)"
 msgstr ""
 
-#: engine/table.py:914 setup/main.py:1200
+#: engine/table.py:914 setup/main.py:1223
 msgid "Autocommit mode"
 msgstr "ავტოკომიტის რეჟიმი"
 
@@ -280,11 +280,11 @@ msgstr "ავტოკომიტის რეჟიმი"
 msgid "Switch autocommit mode"
 msgstr "ავტოკომიტის რეჟიმის გადართვა"
 
-#: engine/table.py:2950
+#: engine/table.py:2947
 msgid "Setup"
 msgstr "მორგება"
 
-#: engine/table.py:2953
+#: engine/table.py:2950
 #, python-format
 msgid "Configure ibus-table “%(engine-name)s”"
 msgstr "ibus-table “%(engine-name)s”-ის მორგება"
@@ -292,42 +292,44 @@ msgstr "ibus-table “%(engine-name)s”-ის მორგება"
 #. Translators: This is used in the title bar of a dialog window
 #. requesting that the user types a key to be used as a new
 #. key binding for a command.
-#: engine/it_util.py:945
+#: engine/it_util.py:942
 msgid "Key input"
 msgstr "ღილაკის შეყვანა"
 
-#: engine/it_util.py:951
+#: engine/it_util.py:961 engine/it_util.py:1003 engine/it_util.py:1030
 msgid "Cancel"
 msgstr "გაუქმენა"
 
 #. Translators: This is from the dialog to enter a key or a
 #. key combination to be used as a key binding for a
 #. command.
-#: engine/it_util.py:956
+#: engine/it_util.py:966 engine/it_util.py:1014
 msgid "Please press a key (or a key combination)"
 msgstr "დააწექით ღილაკს (ან მათ კომბინაციას)"
 
 #. Translators: This is from the dialog to enter a key or a
 #. key combination to be used as a key binding for a
 #. command.
-#: engine/it_util.py:962
+#: engine/it_util.py:972 engine/it_util.py:1022
 msgid "The dialog will be closed when the key is released"
 msgstr "ეს ფანჯარა დაიხურება, როცა ღილაკს გაუშვებთ"
 
-#: engine/it_util.py:999
+#: engine/it_util.py:1142
 msgid "Table input method for IBus."
 msgstr ""
 
 #. Translators: put your names here, one name per line.
-#. The list of names of the translators for the current locale
-#. will be displayed in the “About ibus-table” dialog.
-#: engine/it_util.py:1023
+#: engine/it_util.py:1164
 msgid "translator-credits"
 msgstr "თემური დოღონაძე"
 
-#: engine/it_util.py:1031
+#: engine/it_util.py:1172
 msgid "Online documentation:"
 msgstr "ონლაინ დოკუმენტაცია:"
+
+#: engine/g_compat_helpers.py:1197
+msgid "Open File ..."
+msgstr ""
 
 #: org.freedesktop.ibus.engine.table.metainfo.xml.in:6
 msgid "Ibus Table"
@@ -352,44 +354,44 @@ msgstr "IBus-ის ცხრილის პარამეტრები"
 msgid "Set IBus Table Options"
 msgstr ""
 
-#: setup/main.py:119
+#: setup/main.py:134
 msgid "Initial state"
 msgstr "საწყისი მდგომარეობა"
 
-#: setup/main.py:120
+#: setup/main.py:135
 msgid "Direct input"
 msgstr "პირდაპირი შეყვანა"
 
-#: setup/main.py:121
+#: setup/main.py:136
 msgid "Table input"
 msgstr "ცხრილით შეყვანა"
 
-#: setup/main.py:135 setup/main.py:195
+#: setup/main.py:146
 msgid "Preferences"
 msgstr "მორგება"
 
-#: setup/main.py:218
+#: setup/main.py:262
 msgid "About"
 msgstr "შესახებ"
 
-#: setup/main.py:226
+#: setup/main.py:271
 msgid "Restore all defaults"
 msgstr "ყველა მნიშვნელობის ნაგულისხმებამდე აღდგენა"
 
-#: setup/main.py:235 setup/main.py:3096
+#: setup/main.py:280 setup/main.py:3066
 msgid "_Close"
 msgstr "და_კეტვა"
 
 #. Translators: This is the label of a tab in the setup tool.
 #. Here the user can set up some options which influence the
 #. behaviour of ibus-table.
-#: setup/main.py:258
+#: setup/main.py:302
 msgid "Settings"
 msgstr "მორგება"
 
 #. Translators: This is the label of a tab in the setup tool.
 #. Here the user can set up some more advanced options.
-#: setup/main.py:273
+#: setup/main.py:317
 msgid "Details"
 msgstr "დეტალები"
 
@@ -400,11 +402,11 @@ msgstr "დეტალები"
 #. etc...
 #. Translators: Column heading of the table listing the
 #. existing key bindings
-#: setup/main.py:289 setup/main.py:751
+#: setup/main.py:333 setup/main.py:798
 msgid "Key bindings"
 msgstr "კლავიატურის ბმები"
 
-#: setup/main.py:302
+#: setup/main.py:346
 msgid "Menu Items"
 msgstr "მენიუს პუნქტები"
 
@@ -412,7 +414,7 @@ msgstr "მენიუს პუნქტები"
 #. (“Direct input” or “Table input”) should be remembered
 #. or whether ibus-table should always use “Table input” by
 #. default after a restart.
-#: setup/main.py:325
+#: setup/main.py:369
 msgid "Remember input mode"
 msgstr "შეტანის მეთოდის დამახსოვრება"
 
@@ -421,7 +423,7 @@ msgstr "შეტანის მეთოდის დამახსოვრ�
 #. input”) should be remembered or whether ibus-table
 #. should always use “Table input” by default after a
 #. restart.
-#: setup/main.py:332
+#: setup/main.py:376
 msgid ""
 "Whether the last used input mode should be remembered or whether ibus-table "
 "should start in “Table mode” by default after a restart. There are two input "
@@ -431,23 +433,23 @@ msgid ""
 "fullwidth and halfwidth may still happen in direct input mode."
 msgstr ""
 
-#: setup/main.py:345
+#: setup/main.py:388
 msgid "No"
 msgstr "არა"
 
-#: setup/main.py:347
+#: setup/main.py:389
 msgid "Yes"
 msgstr "კი"
 
 #. Translators: A combobox to choose the variant of
 #. Chinese which should be preferred.
-#: setup/main.py:371
+#: setup/main.py:414
 msgid "Chinese mode:"
 msgstr "ჩინური რეჟიმი:"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose which variant of Chinese should be preferred.
-#: setup/main.py:375
+#: setup/main.py:418
 msgid ""
 "“Simplified Chinese” shows only characters \n"
 "used in simplified Chinese. “Traditional Chinese”\n"
@@ -464,26 +466,26 @@ msgstr ""
 #. Translators: This is the setting to use both
 #. simplified and traditional Chinese but prefer
 #. simplified Chinese
-#: setup/main.py:400
+#: setup/main.py:443
 msgid "Simplified Chinese before traditional"
 msgstr "გამარტივებული ჩინური ტრადიციულამდე"
 
 #. Translators: This is the setting to use both
 #. simplified and traditional Chinese but prefer
 #. traditional Chinese
-#: setup/main.py:405
+#: setup/main.py:448
 msgid "Traditional Chinese before simplified"
 msgstr "ტრადიციულ ჩინური გამარტივებულამდე"
 
 #. Translators: A combobox to choose the letter width
 #. while in “Table input” mode.
-#: setup/main.py:435
+#: setup/main.py:479
 msgid "Table input letter width:"
 msgstr ""
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose the letter width while in “Table input” mode.
-#: setup/main.py:439
+#: setup/main.py:483
 msgid ""
 "Whether to use fullwidth or halfwidth\n"
 "letters in table input mode."
@@ -491,13 +493,13 @@ msgstr ""
 
 #. Translators: A combobox to choose the punctuation width
 #. while in “Table input” mode.
-#: setup/main.py:478
+#: setup/main.py:523
 msgid "Table input punctuation width:"
 msgstr ""
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose the punctuation width while in “Table input” mode.
-#: setup/main.py:482
+#: setup/main.py:527
 msgid ""
 "Whether to use fullwidth or halfwidth\n"
 "punctuation in table input mode."
@@ -505,13 +507,13 @@ msgstr ""
 
 #. Translators: A combobox to choose the letter width
 #. while in “Direct input” mode.
-#: setup/main.py:524
+#: setup/main.py:569
 msgid "Direct input letter width:"
 msgstr ""
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose the letter width while in “Direct input” mode.
-#: setup/main.py:528
+#: setup/main.py:573
 msgid ""
 "Whether to use fullwidth or halfwidth\n"
 "letters in direct input mode."
@@ -519,19 +521,19 @@ msgstr ""
 
 #. Translators: A combobox to choose the punctuation width
 #. while in “Direct input” mode.
-#: setup/main.py:568
+#: setup/main.py:614
 msgid "Direct input punctuation width:"
 msgstr ""
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose the punctuation width while in “Direct input” mode.
-#: setup/main.py:572
+#: setup/main.py:618
 msgid ""
 "Whether to use fullwidth or halfwidth\n"
 "punctuation in direct input mode."
 msgstr ""
 
-#: setup/main.py:612
+#: setup/main.py:658
 msgid "Candidate list"
 msgstr "კანდიდატების სია"
 
@@ -541,14 +543,14 @@ msgstr "კანდიდატების სია"
 #. candidate list to be shown. But for some non-Chinese
 #. input methods like the Russian “translit”, hiding
 #. the candidate lists is better.
-#: setup/main.py:627
+#: setup/main.py:673
 msgid "Show candidate list"
 msgstr "კანდიდატების სიის ჩვენება"
 
 #. Translit: A tooltip for the label of the combobox to
 #. choose whether a candidate list should be shown or
 #. hidden.
-#: setup/main.py:632
+#: setup/main.py:678
 msgid ""
 "Whether candidate lists should be shown or hidden.\n"
 "For Chinese input methods one usually wants the\n"
@@ -559,41 +561,41 @@ msgstr ""
 
 #. Translators: A combobox to choose whether the candidate
 #. window should be drawn horizontally or vertically.
-#: setup/main.py:651
+#: setup/main.py:697
 msgid "Orientation:"
 msgstr "ორიენტაცია:"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether the candidate window should be drawn
 #. horizontally or vertically.
-#: setup/main.py:656
+#: setup/main.py:702
 msgid ""
 "Whether the lookup table showing the candidates\n"
 "should be vertical or horizontal."
 msgstr ""
 
-#: setup/main.py:662
+#: setup/main.py:708
 msgid "Horizontal"
 msgstr "ჰორიზონტალური"
 
-#: setup/main.py:664
+#: setup/main.py:710
 msgid "Vertical"
 msgstr "ვერტიკალური"
 
-#: setup/main.py:666
+#: setup/main.py:712
 msgid "System default"
 msgstr "სისტემის ნაგულისხმები"
 
 #. Translators: Here one can choose how many suggestion
 #. candidates to show in one page of the candidate list.
-#: setup/main.py:691
+#: setup/main.py:738
 msgid "Page size:"
 msgstr "გვერდის ზომა:"
 
 #. Translators: A tooltip for the label of the adjustment
 #. for the number of candidates to show in one page of the
 #. candidate list.
-#: setup/main.py:696
+#: setup/main.py:743
 msgid ""
 "The maximum number of candidates in\n"
 "one page of the lookup table. You can switch\n"
@@ -601,27 +603,27 @@ msgid ""
 "keys or the arrow up/down keys."
 msgstr ""
 
-#: setup/main.py:718
+#: setup/main.py:765
 msgid "Current key bindings:"
 msgstr "მიმდინარე ღილაკის ბმები:"
 
 #. Translators: Column heading of the table listing the
 #. existing key bindings
-#: setup/main.py:743
+#: setup/main.py:790
 msgid "Command"
 msgstr "ბრძანება"
 
-#: setup/main.py:774
+#: setup/main.py:816
 msgid "Edit"
 msgstr "ჩასწორება"
 
 #. Translators: A tooltip for the button to edit
 #. the keybindings for the selected command.
-#: setup/main.py:780
+#: setup/main.py:819
 msgid "Edit the key bindings for the selected command"
 msgstr "მონიშნული ბრძანების ღილაკის ბმების ჩასწორება"
 
-#: setup/main.py:787 setup/main.py:2284
+#: setup/main.py:824 setup/main.py:2237
 msgid "Set to default"
 msgstr "ნაგულისხმები მნიშვნელობების დაყენება"
 
@@ -629,17 +631,17 @@ msgstr "ნაგულისხმები მნიშვნელობე�
 #. the default key bindings for the selected command.
 #. Translators: This is a tooltip for the button to set
 #. the key bindings for the selected command to the default.
-#: setup/main.py:793 setup/main.py:2291
+#: setup/main.py:827 setup/main.py:2240
 msgid "Set default key bindings for the selected command"
 msgstr "მონიშნული ბრძანებისთვის ნაგულისხმები ღილაკების მიბმის დაყენება"
 
-#: setup/main.py:800
+#: setup/main.py:832
 msgid "Set all to default"
 msgstr "ყველას ნაგულისხმებ მნიშვნელობებზე დაყენება"
 
 #. Translators: A tooltip for the button to set the
 #. key bindings to default for all commands.
-#: setup/main.py:806
+#: setup/main.py:835
 msgid "Set default key bindings for all commands"
 msgstr ""
 "ყველა ბრძანების ყველა ღილაკის მიბმის ნაგულისხმებ მნიშვნელობებზე დაყენება"
@@ -647,30 +649,30 @@ msgstr ""
 #. Translators: A checkbox where one can choose whether the
 #. order of the candidates is dynamically adjusted according
 #. to how often the candidates are used.
-#: setup/main.py:831
+#: setup/main.py:860
 msgid "Dynamic adjust"
 msgstr "დინამიკური გასწორება"
 
-#: setup/main.py:833
+#: setup/main.py:862
 msgid ""
 "Here you can choose whether the order of the candidates is dynamically "
 "adjusted according to how often the candidates are used."
 msgstr ""
 
-#: setup/main.py:846
+#: setup/main.py:874
 msgid "Delete all learned data"
 msgstr "ნასწავლი მონაცემების წაშლა"
 
 #. Translators: A combobox to choose whether only single
 #. character candidates should be shown.
-#: setup/main.py:871
+#: setup/main.py:898
 msgid "Compose:"
 msgstr "შედგება:"
 
 #. Translators: A tooltip for label of the combobox to
 #. choose whether only single character candidates should
 #. be shown.
-#: setup/main.py:876
+#: setup/main.py:903
 msgid ""
 "If this is set to “single char”, only single\n"
 "character candidates will be shown. If it is\n"
@@ -678,24 +680,24 @@ msgid ""
 "several characters may be shown."
 msgstr ""
 
-#: setup/main.py:884
+#: setup/main.py:910
 msgid "Phrase"
 msgstr "ფრაზა"
 
-#: setup/main.py:886
+#: setup/main.py:911
 msgid "Single Char"
 msgstr "1 სიმბოლო"
 
 #. Translators: A combobox to choose whether the first
 #. candidate will be automatically selected during typing.
-#: setup/main.py:911
+#: setup/main.py:937
 msgid "Auto select"
 msgstr "ავტომატური არჩევა"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether the first candidate will be automatically
 #. select during typing.
-#: setup/main.py:916
+#: setup/main.py:942
 msgid ""
 "If set to “Yes”, this does the following 4 things:\n"
 "1) When typing “Return”, commit the \n"
@@ -711,14 +713,14 @@ msgstr ""
 
 #. Translators: A combobox to choose whether automatic
 #. commits go into the preëdit or into the application
-#: setup/main.py:941
+#: setup/main.py:967
 msgid "Autocommit mode:"
 msgstr "ავტოკომიტის რეჟიმი:"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether automatic commits go into the preëdit or
 #. into the application.
-#: setup/main.py:946
+#: setup/main.py:972
 msgid ""
 "Committing with the commit keys or with the mouse\n"
 "always commits to the application. This option is about\n"
@@ -733,14 +735,14 @@ msgstr ""
 
 #. Translators: A combobox to choose whether only single
 #. character candidates should be shown.
-#: setup/main.py:987
+#: setup/main.py:1012
 msgid "Action when typing invalid character:"
 msgstr ""
 
 #. Translators: A tooltip for label of the combobox to
 #. choose whether only single character candidates should
 #. be shown.
-#: setup/main.py:992
+#: setup/main.py:1017
 msgid ""
 "Determines what happens when a character which is not in the set of valid "
 "input characters for this table is typed: With “commit current candidate”, "
@@ -751,24 +753,24 @@ msgid ""
 "after the text that results from the options listed above."
 msgstr ""
 
-#: setup/main.py:1005
+#: setup/main.py:1030
 msgid "Commit current candidate"
 msgstr "პირველი კანდიდატის გადაცემა"
 
-#: setup/main.py:1007
+#: setup/main.py:1032
 msgid "Commit typed keys"
 msgstr "აკრეფილი ღილაკების გადაცემა"
 
 #. Translators: A combobox to choose whether a wildcard
 #. should be automatically appended to the input.
-#: setup/main.py:1031
+#: setup/main.py:1057
 msgid "Auto wildcard"
 msgstr "ავტომატური ვალდკარდი"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether a wildcard should be automatically
 #. appended to the input.
-#: setup/main.py:1036
+#: setup/main.py:1062
 msgid ""
 "If yes, a multi wildcard will be automatically\n"
 "appended to the end of the input string."
@@ -776,29 +778,29 @@ msgstr ""
 
 #. Translators: This single character is a placeholder
 #. to match a any single character
-#: setup/main.py:1053
+#: setup/main.py:1079
 msgid "Single wildcard character:"
 msgstr "ერთი ვაილდკარდის სიმბოლო:"
 
 #. Translators: This is a tooltip for the label of the
 #. entry where one can choose the wildcard to match a
 #. single character.
-#: setup/main.py:1058
+#: setup/main.py:1084
 msgid ""
 "The wildcard to match any single character.\n"
 "Type RETURN or ENTER to confirm after changing the wildcard."
 msgstr ""
 
 #. Translators: This single character is a placeholder
-#. to match a any number of characters
-#: setup/main.py:1079
+#. to match any number of characters
+#: setup/main.py:1105
 msgid "Multi wildcard character:"
 msgstr "ნებისმიერი რაოდენობის სიმბოლოების დამთხვევის სიმბოლო:"
 
 #. Translators: This is a tooltip for the label of the
-#. entry where one can choose the wildcard to match any
-#. number of candidates.
-#: setup/main.py:1084
+#. entry where one can choose the wildcard character to
+#. match any number of characters.
+#: setup/main.py:1110
 msgid ""
 "The wildcard used to match any number of characters.\n"
 "Type RETURN or ENTER to confirm after changing the wildcard."
@@ -806,24 +808,24 @@ msgstr ""
 
 #. Translators: A combobox to choose whether
 #. the color scheme for a dark theme should be used.
-#: setup/main.py:1104
+#: setup/main.py:1130
 msgid "Use dark theme"
 msgstr "მუქი თემის გამოყენება"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether the color scheme for a dark theme should
 #. be used.
-#: setup/main.py:1109
+#: setup/main.py:1135
 msgid "If yes, the color scheme for a dark theme will be used."
 msgstr ""
 
 #. Translators: A checkbox where one can choose whether a
 #. sound is played on error
-#: setup/main.py:1124
+#: setup/main.py:1150
 msgid "Play sound file on error"
 msgstr "შეცდომისას ხმოვანი ფაილის დაკვრა"
 
-#: setup/main.py:1126
+#: setup/main.py:1152
 msgid ""
 "Here you can choose whether a sound file is played if an error occurs. If "
 "the simpleaudio module for Python3 is not installed, this option does "
@@ -836,13 +838,13 @@ msgstr ""
 #. Translators: When the debug level is greater than 0,
 #. debug information may be printed to the log file and
 #. debug information may also be shown graphically.
-#: setup/main.py:1167
+#: setup/main.py:1190
 msgid "Debug level:"
 msgstr "გამართვის დონე:"
 
 #. Translators: This is a tooltip for the label for the
 #. adjustment of the debug level.
-#: setup/main.py:1171
+#: setup/main.py:1194
 msgid ""
 "When greater than 0, debug information may be printed to the log file and "
 "debug information may also be shown graphically."
@@ -850,28 +852,28 @@ msgstr ""
 "როცა ნულზე მეტია, გამართვის ინფორმაცია ჟურნალის ფაილში ჩაიწერება. მისი "
 "ჩვენება გრაფიკულადაც შეიძლება."
 
-#: setup/main.py:1592
-msgid "Are you sure?"
-msgstr "დარწმუნებული ბრძანდებით?"
-
-#: setup/main.py:1594 setup/main.py:1927
-msgid "_Cancel"
-msgstr "_გაუქმება"
-
-#: setup/main.py:1595 setup/main.py:1928
-msgid "_OK"
-msgstr "_დიახ"
-
-#: setup/main.py:1627
+#: setup/main.py:1615
 msgid "Another instance of this app is already running."
 msgstr "ამ აპის სხვა ასლი უკვე გაშვებულია."
 
 #. Translators: This is the text in the centre of a small
 #. dialog window, trying to confirm whether the user is
 #. really sure to restore all default settings.
-#: setup/main.py:1699
+#: setup/main.py:1685
 msgid "Do you really want to restore all default settings?"
 msgstr "მართლა გნებავთ ყველა პარამეტრის ნაგულისხმებ მნიშვნელობაზე დაყენება?"
+
+#: setup/main.py:1686 setup/main.py:1897 setup/main.py:2306
+msgid "Are you sure?"
+msgstr "დარწმუნებული ბრძანდებით?"
+
+#: setup/main.py:1687 setup/main.py:1898 setup/main.py:2307 setup/main.py:3139
+msgid "_OK"
+msgstr "_დიახ"
+
+#: setup/main.py:1688 setup/main.py:1899 setup/main.py:2308
+msgid "_Cancel"
+msgstr "_გაუქმება"
 
 #. Translators: This is the text in the centre of a small
 #. dialog window, trying to confirm whether the user is
@@ -879,7 +881,7 @@ msgstr "მართლა გნებავთ ყველა პარამ
 #. ibus-table has learned from typing and selecting candidates.
 #. Deleting this learned data cannot be reversed. So
 #. the user should be really sure he really wants to do that.
-#: setup/main.py:1902
+#: setup/main.py:1895
 msgid ""
 "Do you really want to delete all data learned from typing and selecting "
 "candidates?"
@@ -887,36 +889,36 @@ msgstr ""
 "მართლა გნებავთ ყველა ენის მონაცემების, რომელიც ფაილების კითხვით ვისწავლე, "
 "წაშლა?"
 
-#: setup/main.py:1924
+#: setup/main.py:1921
 msgid "Select .wav sound file:"
 msgstr "აირჩიეთ .wav ხმოვანი ფაილი:"
 
-#: setup/main.py:2207
+#: setup/main.py:2190
 #, python-format
 msgid "Edit key bindings for command “%s”"
 msgstr "ღილაკების მიბმის შეცვლა ბრძანებისთვის \"%s\""
 
 #. Translators: This is a tooltip for the button to add a
 #. key binding.
-#: setup/main.py:2237
+#: setup/main.py:2208
 msgid "Add a key binding"
 msgstr "ღილაკების მიბმის დამატება"
 
 #. Translators: This is a tooltip for the button to remove
 #. the selected key binding.
-#: setup/main.py:2251
+#: setup/main.py:2216
 msgid "Remove selected key binding"
 msgstr "მონიშნული ღილაკის მიბმის წაშლა"
 
 #. Translators: This is a tooltip for the button to move
 #. the selected key binding up (higher in priority).
-#: setup/main.py:2266
+#: setup/main.py:2224
 msgid "Move key binding up"
 msgstr ""
 
 #. Translators: This is a tooltip for the button to move
 #. the selected key binding down (lower in priority).
-#: setup/main.py:2279
+#: setup/main.py:2232
 msgid "Move key binding down"
 msgstr ""
 
@@ -925,7 +927,7 @@ msgstr ""
 #. really sure to reset the key bindings for *all* commands
 #. to their defaults. This cannot be reversed so the user
 #. should be really sure he wants to do that.
-#: setup/main.py:2346
+#: setup/main.py:2304
 msgid ""
 "Do you really want to set the key bindings for all commands to their "
 "defaults?"
@@ -933,6 +935,6 @@ msgstr ""
 "მართლა გნებავთ ყველა ბრძანების ღილაკებზე მიბმის ნაგულისხმებ მნიშვნელობებზე "
 "დაყენება?"
 
-#: setup/main.py:3163
+#: setup/main.py:3136
 msgid "ibus is not running."
 msgstr "ibus გაშვებული არაა."
