@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/mike-fabian/ibus-table/issues\n"
-"POT-Creation-Date: 2026-11-09 19:16+0100\n"
+"POT-Creation-Date: 2026-11-10 09:46+0100\n"
 "PO-Revision-Date: 2026-11-09 18:59+0000\n"
 "Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
 "memory@weblate.org>\n"
@@ -298,40 +298,50 @@ msgstr "ຕັ້ງຄ່າ ibus-table “%(engine-name)s”"
 msgid "Key input"
 msgstr "ປ້ອນປຸ່ມກົດ"
 
-#: engine/it_util.py:961 engine/it_util.py:1003 engine/it_util.py:1030
+#: engine/it_util.py:961 engine/it_util.py:1005 engine/it_util.py:1032
 msgid "Cancel"
 msgstr "ຍົກເລີກ"
 
 #. Translators: This is from the dialog to enter a key or a
 #. key combination to be used as a key binding for a
 #. command.
-#: engine/it_util.py:966 engine/it_util.py:1014
+#: engine/it_util.py:966 engine/it_util.py:1016
 msgid "Please press a key (or a key combination)"
 msgstr "ກະລຸນາກົດປຸ່ມ (ຫຼື ກົດຫຼາຍປຸ່ມປະສົມກັນ)"
 
 #. Translators: This is from the dialog to enter a key or a
 #. key combination to be used as a key binding for a
 #. command.
-#: engine/it_util.py:972 engine/it_util.py:1022
+#: engine/it_util.py:972 engine/it_util.py:1024
 msgid "The dialog will be closed when the key is released"
 msgstr "ໜ້າຕ່າງຈະປິດລົງເມື່ອທ່ານປ່ອຍປຸ່ມກົດ"
 
-#: engine/it_util.py:1142
+#: engine/it_util.py:1146
 msgid "Table input method for IBus."
 msgstr "ວິທີການປ້ອນຂໍ້ມູນແບບຕາຕະລາງສຳລັບ IBus."
 
 #. Translators: put your names here, one name per line.
-#: engine/it_util.py:1164
+#: engine/it_util.py:1168
 msgid "translator-credits"
 msgstr "Bone NI <bounkirdni@gmail.com>"
 
-#: engine/it_util.py:1172
+#: engine/it_util.py:1176
 msgid "Online documentation:"
 msgstr "ເອກະສານອອນໄລນ໌:"
 
-#: engine/g_compat_helpers.py:1197
+#: engine/g_compat_helpers.py:1202
 msgid "Open File ..."
 msgstr "ເປີດໄຟລ໌ ..."
+
+#: engine/g_compat_helpers.py:1226 setup/main.py:1687 setup/main.py:1898
+#: setup/main.py:2307 setup/main.py:3139
+msgid "_OK"
+msgstr "ຕົກລົງ (_O)"
+
+#: engine/g_compat_helpers.py:1226 setup/main.py:1688 setup/main.py:1899
+#: setup/main.py:2308
+msgid "_Cancel"
+msgstr "ຍົກເລີກ (_C)"
 
 #: org.freedesktop.ibus.engine.table.metainfo.xml.in:6
 msgid "Ibus Table"
@@ -921,14 +931,6 @@ msgstr "ທ່ານຕ້ອງການຄືນຄ່າເລີ່ມຕົ
 #: setup/main.py:1686 setup/main.py:1897 setup/main.py:2306
 msgid "Are you sure?"
 msgstr "ທ່ານແນ່ໃຈບໍ່?"
-
-#: setup/main.py:1687 setup/main.py:1898 setup/main.py:2307 setup/main.py:3139
-msgid "_OK"
-msgstr "ຕົກລົງ (_O)"
-
-#: setup/main.py:1688 setup/main.py:1899 setup/main.py:2308
-msgid "_Cancel"
-msgstr "ຍົກເລີກ (_C)"
 
 #. Translators: This is the text in the centre of a small
 #. dialog window, trying to confirm whether the user is

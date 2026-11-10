@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/mike-fabian/ibus-table/issues\n"
-"POT-Creation-Date: 2026-11-09 19:16+0100\n"
+"POT-Creation-Date: 2026-11-10 09:46+0100\n"
 "PO-Revision-Date: 2026-11-09 18:59+0000\n"
 "Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
 "memory@weblate.org>\n"
@@ -298,30 +298,30 @@ msgstr ""
 msgid "Key input"
 msgstr "Εισαγωγή πλήκτρων"
 
-#: engine/it_util.py:961 engine/it_util.py:1003 engine/it_util.py:1030
+#: engine/it_util.py:961 engine/it_util.py:1005 engine/it_util.py:1032
 msgid "Cancel"
 msgstr "Ακύρωση"
 
 #. Translators: This is from the dialog to enter a key or a
 #. key combination to be used as a key binding for a
 #. command.
-#: engine/it_util.py:966 engine/it_util.py:1014
+#: engine/it_util.py:966 engine/it_util.py:1016
 msgid "Please press a key (or a key combination)"
 msgstr "Παρακαλούμε πατήστε ένα κουμπί (ή ένα συνδυασμό κουμπιών)"
 
 #. Translators: This is from the dialog to enter a key or a
 #. key combination to be used as a key binding for a
 #. command.
-#: engine/it_util.py:972 engine/it_util.py:1022
+#: engine/it_util.py:972 engine/it_util.py:1024
 msgid "The dialog will be closed when the key is released"
 msgstr "Το παράθυρο διαλόγου θα κλείσει όταν απελευθερωθεί το κουμπί"
 
-#: engine/it_util.py:1142
+#: engine/it_util.py:1146
 msgid "Table input method for IBus."
 msgstr ""
 
 #. Translators: put your names here, one name per line.
-#: engine/it_util.py:1164
+#: engine/it_util.py:1168
 msgid "translator-credits"
 msgstr ""
 "Nikos Charonitakis <charosn@her.forthnet.gr>, 2002-2004\n"
@@ -338,13 +338,23 @@ msgstr ""
 "mitzie <soldizach@gmail.com>, 2013\n"
 "Vangelis Skarmoutsos <skarmoutsosv@gmail.com>, 2015"
 
-#: engine/it_util.py:1172
+#: engine/it_util.py:1176
 msgid "Online documentation:"
 msgstr "Διαδικτυακή τεκμηρίωση:"
 
-#: engine/g_compat_helpers.py:1197
+#: engine/g_compat_helpers.py:1202
 msgid "Open File ..."
 msgstr "Άνοιγμα αρχείου..."
+
+#: engine/g_compat_helpers.py:1226 setup/main.py:1687 setup/main.py:1898
+#: setup/main.py:2307 setup/main.py:3139
+msgid "_OK"
+msgstr "_Εντάξει"
+
+#: engine/g_compat_helpers.py:1226 setup/main.py:1688 setup/main.py:1899
+#: setup/main.py:2308
+msgid "_Cancel"
+msgstr "_Ακύρωση"
 
 #: org.freedesktop.ibus.engine.table.metainfo.xml.in:6
 msgid "Ibus Table"
@@ -875,14 +885,6 @@ msgstr "Θέλετε σίγουρα να επαναφέρετε όλες τις 
 #: setup/main.py:1686 setup/main.py:1897 setup/main.py:2306
 msgid "Are you sure?"
 msgstr ""
-
-#: setup/main.py:1687 setup/main.py:1898 setup/main.py:2307 setup/main.py:3139
-msgid "_OK"
-msgstr "_Εντάξει"
-
-#: setup/main.py:1688 setup/main.py:1899 setup/main.py:2308
-msgid "_Cancel"
-msgstr "_Ακύρωση"
 
 #. Translators: This is the text in the centre of a small
 #. dialog window, trying to confirm whether the user is
