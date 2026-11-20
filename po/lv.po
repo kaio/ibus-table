@@ -2,20 +2,24 @@
 # Copyright (C) YEAR Yu Yuwei <acevery@gmail.com>
 # This file is distributed under the same license as the PACKAGE package.
 # Rihards Prieditis <rprieditis@gmail.com>, 2026.
+# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/mike-fabian/ibus-table/issues\n"
 "POT-Creation-Date: 2026-11-10 09:46+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2026-11-20 22:18+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
+"Language-Team: Latvian <https://translate.fedoraproject.org/projects/ibus-"
+"table/app/lv/>\n"
 "Language: lv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n % 10 == 0 || n % 100 >= 11 && n % 100 <= "
 "19) ? 0 : ((n % 10 == 1 && n % 100 != 11) ? 1 : 2);\n"
+"X-Generator: Weblate 2026.11.2\n"
 
 #. Translators: This is the menu entry to select
 #. when one wants to input only Simplified Chinese.
@@ -23,7 +27,7 @@ msgstr ""
 #. simplified Chinese
 #: engine/table.py:680 setup/main.py:434
 msgid "Simplified Chinese"
-msgstr ""
+msgstr "Vienkāršotās ķīniešu valodas atbalsts"
 
 #: engine/table.py:682
 msgid "Switch to “Simplified Chinese only”."
@@ -35,7 +39,7 @@ msgstr ""
 #. traditional Chinese
 #: engine/table.py:689 setup/main.py:438
 msgid "Traditional Chinese"
-msgstr ""
+msgstr "Tradicionālās ķīniešu valodas atbalsts"
 
 #: engine/table.py:691
 msgid "Switch to “Traditional Chinese only”."
@@ -48,7 +52,7 @@ msgstr ""
 #. lists.
 #: engine/table.py:701
 msgid "Simplified Chinese first"
-msgstr ""
+msgstr "Vienkāršotās ķīniešu valodas atbalsts"
 
 #: engine/table.py:703
 msgid "Switch to “Simplified Chinese before traditional”."
@@ -61,7 +65,7 @@ msgstr ""
 #. lists.
 #: engine/table.py:713
 msgid "Traditional Chinese first"
-msgstr ""
+msgstr "Tradicionālās ķīniešu valodas atbalsts"
 
 #: engine/table.py:715
 msgid "Switch to “Traditional Chinese before simplified”."
@@ -85,15 +89,15 @@ msgstr ""
 
 #: engine/table.py:730 setup/main.py:1217
 msgid "Chinese mode"
-msgstr ""
+msgstr "Ķīniešu režīms"
 
 #: engine/table.py:731
 msgid "Switch Chinese mode"
-msgstr ""
+msgstr "Pārslēgties uz ķīniešu režīmu"
 
 #: engine/table.py:742
 msgid "English"
-msgstr ""
+msgstr "Angļu"
 
 #: engine/table.py:743
 msgid "Switch to English input"
@@ -105,11 +109,11 @@ msgstr ""
 
 #: engine/table.py:751
 msgid "Switch to Chinese input"
-msgstr ""
+msgstr "Pārslēgties uz ķīniešu režīmu"
 
 #: engine/table.py:759 engine/table.py:907 setup/main.py:985
 msgid "Direct"
-msgstr ""
+msgstr "JetDirect"
 
 #: engine/table.py:760
 msgid "Switch to direct input"
@@ -117,7 +121,7 @@ msgstr ""
 
 #: engine/table.py:765 engine/table.py:829
 msgid "Table"
-msgstr ""
+msgstr "Tabula"
 
 #: engine/table.py:766
 msgid "Switch to table input"
@@ -125,11 +129,11 @@ msgstr ""
 
 #: engine/table.py:774
 msgid "Input mode"
-msgstr ""
+msgstr "Ievades režīms"
 
 #: engine/table.py:775
 msgid "Switch Input mode"
-msgstr ""
+msgstr "Pārslēgt ievades režīmu"
 
 #. Translators: This is the mode to use half width letters
 #. while in “Table input” mode.
@@ -159,7 +163,7 @@ msgstr ""
 #: engine/table.py:791 engine/table.py:813 setup/main.py:495 setup/main.py:540
 #: setup/main.py:585 setup/main.py:631
 msgid "Full"
-msgstr ""
+msgstr "_Pilns"
 
 #: engine/table.py:792
 msgid "Switch to fullwidth letters"
@@ -207,7 +211,7 @@ msgstr ""
 
 #: engine/table.py:841
 msgid "Switch pinyin mode"
-msgstr ""
+msgstr "Pārslēgt ievades režīmu"
 
 #: engine/table.py:851
 msgid "Suggestion disabled"
@@ -255,7 +259,7 @@ msgstr ""
 
 #: engine/table.py:897 setup/main.py:984
 msgid "Normal"
-msgstr ""
+msgstr "Parasts"
 
 #: engine/table.py:899
 msgid ""
@@ -279,7 +283,7 @@ msgstr ""
 
 #: engine/table.py:2947
 msgid "Setup"
-msgstr ""
+msgstr "Iestatīšana"
 
 #: engine/table.py:2950
 #, python-format
@@ -291,25 +295,25 @@ msgstr ""
 #. key binding for a command.
 #: engine/it_util.py:942
 msgid "Key input"
-msgstr ""
+msgstr "Taustiņa ievade"
 
 #: engine/it_util.py:961 engine/it_util.py:1005 engine/it_util.py:1032
 msgid "Cancel"
-msgstr ""
+msgstr "Atcelt"
 
 #. Translators: This is from the dialog to enter a key or a
 #. key combination to be used as a key binding for a
 #. command.
 #: engine/it_util.py:966 engine/it_util.py:1016
 msgid "Please press a key (or a key combination)"
-msgstr ""
+msgstr "Lūdzu, nospiediet taustiņu (vai taustiņu kombināciju)"
 
 #. Translators: This is from the dialog to enter a key or a
 #. key combination to be used as a key binding for a
 #. command.
 #: engine/it_util.py:972 engine/it_util.py:1024
 msgid "The dialog will be closed when the key is released"
-msgstr ""
+msgstr "Dialoglodziņš tiks aizvērts, kad taustiņu atlaidīsiet"
 
 #: engine/it_util.py:1146
 msgid "Table input method for IBus."
@@ -319,24 +323,28 @@ msgstr ""
 #: engine/it_util.py:1168
 msgid "translator-credits"
 msgstr ""
+"Arvis Lācis\n"
+"Pēteris Krišjānis\n"
+"Rūdolfs Mazurs\n"
+"Rihards Priedītis"
 
 #: engine/it_util.py:1176
 msgid "Online documentation:"
-msgstr ""
+msgstr "Tiešsaistes dokumentācija:"
 
 #: engine/g_compat_helpers.py:1202
 msgid "Open File ..."
-msgstr ""
+msgstr "Atvērt failu ..."
 
 #: engine/g_compat_helpers.py:1226 setup/main.py:1687 setup/main.py:1898
 #: setup/main.py:2307 setup/main.py:3139
 msgid "_OK"
-msgstr ""
+msgstr "_Labi"
 
 #: engine/g_compat_helpers.py:1226 setup/main.py:1688 setup/main.py:1899
 #: setup/main.py:2308
 msgid "_Cancel"
-msgstr ""
+msgstr "_Atcelt"
 
 #: org.freedesktop.ibus.engine.table.metainfo.xml.in:6
 msgid "Ibus Table"
@@ -355,7 +363,7 @@ msgstr ""
 
 #: setup/ibus-setup-table.desktop.in.in:2
 msgid "IBus Table Preferences"
-msgstr ""
+msgstr "IBus iestatījumi"
 
 #: setup/ibus-setup-table.desktop.in.in:3
 msgid "Set IBus Table Options"
@@ -375,32 +383,32 @@ msgstr ""
 
 #: setup/main.py:146
 msgid "Preferences"
-msgstr ""
+msgstr "Iestatījumi"
 
 #: setup/main.py:262
 msgid "About"
-msgstr ""
+msgstr "Par"
 
 #: setup/main.py:271
 msgid "Restore all defaults"
-msgstr ""
+msgstr "Atjaunot visus noklusējumus"
 
 #: setup/main.py:280 setup/main.py:3066
 msgid "_Close"
-msgstr ""
+msgstr "_Aizvērt"
 
 #. Translators: This is the label of a tab in the setup tool.
 #. Here the user can set up some options which influence the
 #. behaviour of ibus-table.
 #: setup/main.py:302
 msgid "Settings"
-msgstr ""
+msgstr "Iestatījumi"
 
 #. Translators: This is the label of a tab in the setup tool.
 #. Here the user can set up some more advanced options.
 #: setup/main.py:317
 msgid "Details"
-msgstr ""
+msgstr "Sīkāka informācija"
 
 #. Translators: This is the label of a tab in the setup tool.
 #. Here the user can customize the key bindings to execute
@@ -411,11 +419,11 @@ msgstr ""
 #. existing key bindings
 #: setup/main.py:333 setup/main.py:798
 msgid "Key bindings"
-msgstr ""
+msgstr "Taustiņu sasaistes"
 
 #: setup/main.py:346
 msgid "Menu Items"
-msgstr ""
+msgstr "Izvēlnes vienums"
 
 #. Translators: A combobox to choose whether the input mode
 #. (“Direct input” or “Table input”) should be remembered
@@ -423,7 +431,7 @@ msgstr ""
 #. default after a restart.
 #: setup/main.py:369
 msgid "Remember input mode"
-msgstr ""
+msgstr "Atcerēties ievades režīmu"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether the input mode (“Direct input” or “Table
@@ -442,17 +450,17 @@ msgstr ""
 
 #: setup/main.py:388
 msgid "No"
-msgstr ""
+msgstr "Nē"
 
 #: setup/main.py:389
 msgid "Yes"
-msgstr ""
+msgstr "Jā"
 
 #. Translators: A combobox to choose the variant of
 #. Chinese which should be preferred.
 #: setup/main.py:414
 msgid "Chinese mode:"
-msgstr ""
+msgstr "Ķīniešu režīms"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose which variant of Chinese should be preferred.
@@ -570,7 +578,7 @@ msgstr ""
 #. window should be drawn horizontally or vertically.
 #: setup/main.py:697
 msgid "Orientation:"
-msgstr ""
+msgstr "Novietojums:"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether the candidate window should be drawn
@@ -583,21 +591,21 @@ msgstr ""
 
 #: setup/main.py:708
 msgid "Horizontal"
-msgstr ""
+msgstr "Horizontāla"
 
 #: setup/main.py:710
 msgid "Vertical"
-msgstr ""
+msgstr "Vertikāla"
 
 #: setup/main.py:712
 msgid "System default"
-msgstr ""
+msgstr "Sistēmas noklusējums"
 
 #. Translators: Here one can choose how many suggestion
 #. candidates to show in one page of the candidate list.
 #: setup/main.py:738
 msgid "Page size:"
-msgstr ""
+msgstr "Lappuses izmērs:"
 
 #. Translators: A tooltip for the label of the adjustment
 #. for the number of candidates to show in one page of the
@@ -612,27 +620,27 @@ msgstr ""
 
 #: setup/main.py:765
 msgid "Current key bindings:"
-msgstr ""
+msgstr "Pašreizējās taustiņu sasaistes:"
 
 #. Translators: Column heading of the table listing the
 #. existing key bindings
 #: setup/main.py:790
 msgid "Command"
-msgstr ""
+msgstr "Komanda"
 
 #: setup/main.py:816
 msgid "Edit"
-msgstr ""
+msgstr "Rediģēt"
 
 #. Translators: A tooltip for the button to edit
 #. the keybindings for the selected command.
 #: setup/main.py:819
 msgid "Edit the key bindings for the selected command"
-msgstr ""
+msgstr "Rediģēt atlasītās komandas taustiņu sasaistes"
 
 #: setup/main.py:824 setup/main.py:2237
 msgid "Set to default"
-msgstr ""
+msgstr "Iestatīt noklusējumu"
 
 #. Translators: A tooltip for the button to set
 #. the default key bindings for the selected command.
@@ -640,17 +648,17 @@ msgstr ""
 #. the key bindings for the selected command to the default.
 #: setup/main.py:827 setup/main.py:2240
 msgid "Set default key bindings for the selected command"
-msgstr ""
+msgstr "Iestatīt atlasītās komandas noklusējuma taustiņu sasaistes"
 
 #: setup/main.py:832
 msgid "Set all to default"
-msgstr ""
+msgstr "Iestatīt visu uz noklusējumu"
 
 #. Translators: A tooltip for the button to set the
 #. key bindings to default for all commands.
 #: setup/main.py:835
 msgid "Set default key bindings for all commands"
-msgstr ""
+msgstr "Iestatīt visu komandu noklusējuma taustiņu sasaistes"
 
 #. Translators: A checkbox where one can choose whether the
 #. order of the candidates is dynamically adjusted according
@@ -667,13 +675,13 @@ msgstr ""
 
 #: setup/main.py:874
 msgid "Delete all learned data"
-msgstr ""
+msgstr "Dzēst apgūtos datus"
 
 #. Translators: A combobox to choose whether only single
 #. character candidates should be shown.
 #: setup/main.py:898
 msgid "Compose:"
-msgstr ""
+msgstr "Compose"
 
 #. Translators: A tooltip for label of the combobox to
 #. choose whether only single character candidates should
@@ -688,7 +696,7 @@ msgstr ""
 
 #: setup/main.py:910
 msgid "Phrase"
-msgstr ""
+msgstr "Phrē"
 
 #: setup/main.py:911
 msgid "Single Char"
@@ -829,7 +837,7 @@ msgstr ""
 #. sound is played on error
 #: setup/main.py:1150
 msgid "Play sound file on error"
-msgstr ""
+msgstr "Kļūdas gadījumā atskaņot skaņas failu"
 
 #: setup/main.py:1152
 msgid ""
@@ -843,7 +851,7 @@ msgstr ""
 #. debug information may also be shown graphically.
 #: setup/main.py:1190
 msgid "Debug level:"
-msgstr ""
+msgstr "Atkļūdošanas līmenis:"
 
 #. Translators: This is a tooltip for the label for the
 #. adjustment of the debug level.
@@ -852,6 +860,8 @@ msgid ""
 "When greater than 0, debug information may be printed to the log file and "
 "debug information may also be shown graphically."
 msgstr ""
+"Ja lielāks par 0, atkļūdošanas informācija var tikt izdrukāta žurnāla failā "
+"un var tikt parādīta arī grafiski."
 
 #: setup/main.py:1615
 msgid "Another instance of this app is already running."
@@ -862,11 +872,11 @@ msgstr ""
 #. really sure to restore all default settings.
 #: setup/main.py:1685
 msgid "Do you really want to restore all default settings?"
-msgstr ""
+msgstr "Vai tiešām vēlaties atjaunot visus noklusējuma iestatījumus?"
 
 #: setup/main.py:1686 setup/main.py:1897 setup/main.py:2306
 msgid "Are you sure?"
-msgstr ""
+msgstr "Vai turpināt?"
 
 #. Translators: This is the text in the centre of a small
 #. dialog window, trying to confirm whether the user is
@@ -879,27 +889,29 @@ msgid ""
 "Do you really want to delete all data learned from typing and selecting "
 "candidates?"
 msgstr ""
+"Vai tiešām vēlaties dzēst visus valodas datus, kas apgūti rakstot vai lasot "
+"failus?"
 
 #: setup/main.py:1921
 msgid "Select .wav sound file:"
-msgstr ""
+msgstr "Atlasiet .wav skaņas failu:"
 
 #: setup/main.py:2190
 #, python-format
 msgid "Edit key bindings for command “%s”"
-msgstr ""
+msgstr "Rediģēt komandas „%s” taustiņu sasaistes"
 
 #. Translators: This is a tooltip for the button to add a
 #. key binding.
 #: setup/main.py:2208
 msgid "Add a key binding"
-msgstr ""
+msgstr "Pievienot taustiņu sasaisti"
 
 #. Translators: This is a tooltip for the button to remove
 #. the selected key binding.
 #: setup/main.py:2216
 msgid "Remove selected key binding"
-msgstr ""
+msgstr "Noņemt atlasīto taustiņu sasaisti"
 
 #. Translators: This is a tooltip for the button to move
 #. the selected key binding up (higher in priority).
@@ -923,7 +935,8 @@ msgid ""
 "Do you really want to set the key bindings for all commands to their "
 "defaults?"
 msgstr ""
+"Vai tiešām vēlaties iestatīt visu komandu taustiņu sasaistes uz noklusējumu?"
 
 #: setup/main.py:3136
 msgid "ibus is not running."
-msgstr ""
+msgstr "IBus nedarbojas."
