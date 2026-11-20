@@ -9,8 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://github.com/mike-fabian/ibus-table/issues\n"
 "POT-Creation-Date: 2026-11-10 09:46+0100\n"
 "PO-Revision-Date: 2026-11-20 22:18+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: Rihards Prieditis <rprieditis@gmail.com>\n"
 "Language-Team: Latvian <https://translate.fedoraproject.org/projects/ibus-"
 "table/app/lv/>\n"
 "Language: lv\n"
@@ -27,11 +26,11 @@ msgstr ""
 #. simplified Chinese
 #: engine/table.py:680 setup/main.py:434
 msgid "Simplified Chinese"
-msgstr "Vienkāršotās ķīniešu valodas atbalsts"
+msgstr "Vienkāršotā ķīniešu"
 
 #: engine/table.py:682
 msgid "Switch to “Simplified Chinese only”."
-msgstr ""
+msgstr "Pārslēgties uz „tikai vienkāršotā ķīniešu”."
 
 #. Translators: This is the menu entry to select
 #. when one wants to input only Traditonal Chinese
@@ -39,11 +38,11 @@ msgstr ""
 #. traditional Chinese
 #: engine/table.py:689 setup/main.py:438
 msgid "Traditional Chinese"
-msgstr "Tradicionālās ķīniešu valodas atbalsts"
+msgstr "Tradicionālā ķīniešu"
 
 #: engine/table.py:691
 msgid "Switch to “Traditional Chinese only”."
-msgstr ""
+msgstr "Pārslēgties uz „tikai tradicionālā ķīniešu”."
 
 #. Translators: This is the menu entry to select when
 #. one wants to input both Simplified and Traditional
@@ -52,11 +51,11 @@ msgstr ""
 #. lists.
 #: engine/table.py:701
 msgid "Simplified Chinese first"
-msgstr "Vienkāršotās ķīniešu valodas atbalsts"
+msgstr "Vispirms vienkāršotā ķīniešu"
 
 #: engine/table.py:703
 msgid "Switch to “Simplified Chinese before traditional”."
-msgstr ""
+msgstr "Pārslēgties uz „vienkāršotā ķīniešu pirms tradicionālās”."
 
 #. Translators: This is the menu entry to select when
 #. one wants to input both Simplified and Traditional
@@ -65,11 +64,11 @@ msgstr ""
 #. lists.
 #: engine/table.py:713
 msgid "Traditional Chinese first"
-msgstr "Tradicionālās ķīniešu valodas atbalsts"
+msgstr "Vispirms tradicionālā ķīniešu"
 
 #: engine/table.py:715
 msgid "Switch to “Traditional Chinese before simplified”."
-msgstr ""
+msgstr "Pārslēgties uz „tradicionālā ķīniešu pirms vienkāršotās”."
 
 #. Translators: This is the menu entry to select when
 #. one wants to input both Simplified and Traditional
@@ -81,11 +80,11 @@ msgstr ""
 #. particular order
 #: engine/table.py:725 setup/main.py:453
 msgid "All Chinese characters"
-msgstr ""
+msgstr "Visas ķīniešu rakstzīmes"
 
 #: engine/table.py:726
 msgid "Switch to “All Chinese characters”."
-msgstr ""
+msgstr "Pārslēgties uz „visas ķīniešu rakstzīmes”."
 
 #: engine/table.py:730 setup/main.py:1217
 msgid "Chinese mode"
@@ -93,7 +92,7 @@ msgstr "Ķīniešu režīms"
 
 #: engine/table.py:731
 msgid "Switch Chinese mode"
-msgstr "Pārslēgties uz ķīniešu režīmu"
+msgstr "Pārslēgt ķīniešu režīmu"
 
 #: engine/table.py:742
 msgid "English"
@@ -101,23 +100,23 @@ msgstr "Angļu"
 
 #: engine/table.py:743
 msgid "Switch to English input"
-msgstr ""
+msgstr "Pārslēgties uz angļu ievadi"
 
 #: engine/table.py:750
 msgid "Chinese"
-msgstr ""
+msgstr "Ķīniešu"
 
 #: engine/table.py:751
 msgid "Switch to Chinese input"
-msgstr "Pārslēgties uz ķīniešu režīmu"
+msgstr "Pārslēgties uz ķīniešu ievadi"
 
 #: engine/table.py:759 engine/table.py:907 setup/main.py:985
 msgid "Direct"
-msgstr "JetDirect"
+msgstr "Tiešā"
 
 #: engine/table.py:760
 msgid "Switch to direct input"
-msgstr ""
+msgstr "Pārslēgties uz tiešo ievadi"
 
 #: engine/table.py:765 engine/table.py:829
 msgid "Table"
@@ -125,7 +124,7 @@ msgstr "Tabula"
 
 #: engine/table.py:766
 msgid "Switch to table input"
-msgstr ""
+msgstr "Pārslēgties uz tabulas ievadi"
 
 #: engine/table.py:774
 msgid "Input mode"
@@ -146,11 +145,11 @@ msgstr "Pārslēgt ievades režīmu"
 #: engine/table.py:785 engine/table.py:807 setup/main.py:491 setup/main.py:536
 #: setup/main.py:581 setup/main.py:627
 msgid "Half"
-msgstr ""
+msgstr "Puse"
 
 #: engine/table.py:786
 msgid "Switch to halfwidth letters"
-msgstr ""
+msgstr "Pārslēgties uz pusplatuma burtiem"
 
 #. Translators: This is the mode to use full width letters
 #. while in “Table input” mode.
@@ -163,99 +162,99 @@ msgstr ""
 #: engine/table.py:791 engine/table.py:813 setup/main.py:495 setup/main.py:540
 #: setup/main.py:585 setup/main.py:631
 msgid "Full"
-msgstr "_Pilns"
+msgstr "Pilns"
 
 #: engine/table.py:792
 msgid "Switch to fullwidth letters"
-msgstr ""
+msgstr "Pārslēgties uz pilna platuma burtiem"
 
 #: engine/table.py:796 setup/main.py:1218
 msgid "Letter width"
-msgstr ""
+msgstr "Burtu platums"
 
 #: engine/table.py:797
 msgid "Switch letter width"
-msgstr ""
+msgstr "Pārslēgt burtu platumu"
 
 #: engine/table.py:808
 msgid "Switch to halfwidth punctuation"
-msgstr ""
+msgstr "Pārslēgties uz pusplatuma pieturzīmēm"
 
 #: engine/table.py:814
 msgid "Switch to fullwidth punctuation"
-msgstr ""
+msgstr "Pārslēgties uz pilna platuma pieturzīmēm"
 
 #: engine/table.py:818 setup/main.py:1219
 msgid "Punctuation width"
-msgstr ""
+msgstr "Pieturzīmju platums"
 
 #: engine/table.py:819
 msgid "Switch punctuation width"
-msgstr ""
+msgstr "Pārslēgt pieturzīmju platumu"
 
 #: engine/table.py:830
 msgid "Switch to table mode"
-msgstr ""
+msgstr "Pārslēgties uz tabulas režīmu"
 
 #: engine/table.py:835
 msgid "Pinyin"
-msgstr ""
+msgstr "Pinyin"
 
 #: engine/table.py:836
 msgid "Switch to pinyin mode"
-msgstr ""
+msgstr "Pārslēgties uz Pinyin režīmu"
 
 #: engine/table.py:840 setup/main.py:1220
 msgid "Pinyin mode"
-msgstr ""
+msgstr "Pinyin režīms"
 
 #: engine/table.py:841
 msgid "Switch pinyin mode"
-msgstr "Pārslēgt ievades režīmu"
+msgstr "Pārslēgt Pinyin režīmu"
 
 #: engine/table.py:851
 msgid "Suggestion disabled"
-msgstr ""
+msgstr "Ieteikumi atspējoti"
 
 #: engine/table.py:852 engine/table.py:858
 msgid "Switch to suggestion mode"
-msgstr ""
+msgstr "Pārslēgties uz ieteikumu režīmu"
 
 #: engine/table.py:857
 msgid "Suggestion enabled"
-msgstr ""
+msgstr "Ieteikumi iespējoti"
 
 #: engine/table.py:862 setup/main.py:1221
 msgid "Suggestion mode"
-msgstr ""
+msgstr "Ieteikumu režīms"
 
 #: engine/table.py:863
 msgid "Switch suggestion mode"
-msgstr ""
+msgstr "Pārslēgt ieteikumu režīmu"
 
 #: engine/table.py:873
 msgid "Multiple character match"
-msgstr ""
+msgstr "Vairāku rakstzīmju atbilstība"
 
 #: engine/table.py:875
 msgid "Switch to matching multiple characters at once"
-msgstr ""
+msgstr "Pārslēgties uz vairāku rakstzīmju vienlaicīgu atbilstību"
 
 #: engine/table.py:880
 msgid "Single character match"
-msgstr ""
+msgstr "Vienas rakstzīmes atbilstība"
 
 #: engine/table.py:882
 msgid "Switch to matching only single characters"
-msgstr ""
+msgstr "Pārslēgties uz tikai atsevišķu rakstzīmju atbilstību"
 
 #: engine/table.py:886 setup/main.py:1222
 msgid "Onechar mode"
-msgstr ""
+msgstr "Vienas rakstzīmes režīms"
 
 #: engine/table.py:887
 msgid "Switch onechar mode"
-msgstr ""
+msgstr "Pārslēgt vienas rakstzīmes režīmu"
 
 #: engine/table.py:897 setup/main.py:984
 msgid "Normal"
@@ -266,20 +265,25 @@ msgid ""
 "Switch to normal commit mode (automatic commits go into the preedit instead "
 "of into the application. This enables automatic definitions of new shortcuts)"
 msgstr ""
+"Pārslēgties uz parasto apstiprināšanas režīmu (automātiskās apstiprināšanas "
+"nonāk pirmsrediģēšanā, nevis lietotnē. Tas iespējo automātisku jaunu saīsņu "
+"definēšanu)"
 
 #: engine/table.py:909
 msgid ""
 "Switch to direct commit mode (automatic commits go directly into the "
 "application)"
 msgstr ""
+"Pārslēgties uz tiešās apstiprināšanas režīmu (automātiskās apstiprināšanas "
+"nonāk tieši lietotnē)"
 
 #: engine/table.py:914 setup/main.py:1223
 msgid "Autocommit mode"
-msgstr ""
+msgstr "Automātiskās apstiprināšanas režīms"
 
 #: engine/table.py:915
 msgid "Switch autocommit mode"
-msgstr ""
+msgstr "Pārslēgt automātiskās apstiprināšanas režīmu"
 
 #: engine/table.py:2947
 msgid "Setup"
@@ -288,7 +292,7 @@ msgstr "Iestatīšana"
 #: engine/table.py:2950
 #, python-format
 msgid "Configure ibus-table “%(engine-name)s”"
-msgstr ""
+msgstr "Konfigurēt ibus-table „%(engine-name)s”"
 
 #. Translators: This is used in the title bar of a dialog window
 #. requesting that the user types a key to be used as a new
@@ -317,16 +321,12 @@ msgstr "Dialoglodziņš tiks aizvērts, kad taustiņu atlaidīsiet"
 
 #: engine/it_util.py:1146
 msgid "Table input method for IBus."
-msgstr ""
+msgstr "Tabulas ievades metode IBus platformai."
 
 #. Translators: put your names here, one name per line.
 #: engine/it_util.py:1168
 msgid "translator-credits"
-msgstr ""
-"Arvis Lācis\n"
-"Pēteris Krišjānis\n"
-"Rūdolfs Mazurs\n"
-"Rihards Priedītis"
+msgstr "Rihards Priedītis"
 
 #: engine/it_util.py:1176
 msgid "Online documentation:"
@@ -348,11 +348,11 @@ msgstr "_Atcelt"
 
 #: org.freedesktop.ibus.engine.table.metainfo.xml.in:6
 msgid "Ibus Table"
-msgstr ""
+msgstr "Ibus Table"
 
 #: org.freedesktop.ibus.engine.table.metainfo.xml.in:7
 msgid "Table based input method"
-msgstr ""
+msgstr "Tabulās balstīta ievades metode"
 
 #: org.freedesktop.ibus.engine.table.metainfo.xml.in:9
 msgid ""
@@ -360,26 +360,29 @@ msgid ""
 "Mostly it is used for Chinese input methods such as ZhengMa, WuBi, ErBi, "
 "CangJie, …. But some tables for other languages are available as well."
 msgstr ""
+"Ibus-table ir ievades metožu ietvars tabulās balstītām ievades metodēm. "
+"Galvenokārt to lieto ķīniešu ievades metodēm, piemēram, ZhengMa, WuBi, ErBi, "
+"CangJie, …, taču ir pieejamas arī dažas tabulas citām valodām."
 
 #: setup/ibus-setup-table.desktop.in.in:2
 msgid "IBus Table Preferences"
-msgstr "IBus iestatījumi"
+msgstr "IBus Table iestatījumi"
 
 #: setup/ibus-setup-table.desktop.in.in:3
 msgid "Set IBus Table Options"
-msgstr ""
+msgstr "Iestatīt IBus Table opcijas"
 
 #: setup/main.py:134
 msgid "Initial state"
-msgstr ""
+msgstr "Sākotnējais stāvoklis"
 
 #: setup/main.py:135
 msgid "Direct input"
-msgstr ""
+msgstr "Tiešā ievade"
 
 #: setup/main.py:136
 msgid "Table input"
-msgstr ""
+msgstr "Tabulas ievade"
 
 #: setup/main.py:146
 msgid "Preferences"
@@ -408,7 +411,7 @@ msgstr "Iestatījumi"
 #. Here the user can set up some more advanced options.
 #: setup/main.py:317
 msgid "Details"
-msgstr "Sīkāka informācija"
+msgstr "Detaļas"
 
 #. Translators: This is the label of a tab in the setup tool.
 #. Here the user can customize the key bindings to execute
@@ -423,7 +426,7 @@ msgstr "Taustiņu sasaistes"
 
 #: setup/main.py:346
 msgid "Menu Items"
-msgstr "Izvēlnes vienums"
+msgstr "Izvēlnes vienumi"
 
 #. Translators: A combobox to choose whether the input mode
 #. (“Direct input” or “Table input”) should be remembered
@@ -447,6 +450,13 @@ msgid ""
 "characters just get passed to the application. But some conversion between "
 "fullwidth and halfwidth may still happen in direct input mode."
 msgstr ""
+"Vai atcerēties pēdējo lietoto ievades režīmu, vai arī pēc pārstartēšanas "
+"ibus-table pēc noklusējuma sākt „tabulas režīmā”. Ir divi ievades režīmi: „"
+"Tabulas ievade” nozīmē, ka ievades metode ir ieslēgta. „Tiešā ievade” ir "
+"gandrīz tas pats, kas izslēgta, t.i., nemaz nelietota ievades metode — "
+"lielākā daļa rakstzīmju vienkārši tiek nodota lietotnei. Tomēr tiešās "
+"ievades režīmā joprojām var notikt pārveidošana starp pilna platuma un "
+"pusplatuma rakstzīmēm."
 
 #: setup/main.py:388
 msgid "No"
@@ -460,7 +470,7 @@ msgstr "Jā"
 #. Chinese which should be preferred.
 #: setup/main.py:414
 msgid "Chinese mode:"
-msgstr "Ķīniešu režīms"
+msgstr "Ķīniešu režīms:"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose which variant of Chinese should be preferred.
@@ -477,26 +487,36 @@ msgid ""
 "matches without any particular filtering on traditional\n"
 "versus simplified Chinese."
 msgstr ""
+"„Vienkāršotā ķīniešu” rāda tikai rakstzīmes, \n"
+"ko lieto vienkāršotajā ķīniešu valodā. „Tradicionālā ķīniešu”\n"
+"rāda tikai rakstzīmes, ko lieto tradicionālajā ķīniešu valodā.\n"
+"„Vienkāršotā ķīniešu pirms tradicionālās” rāda visas\n"
+"rakstzīmes, bet vienkāršotās rakstzīmes novieto augstāk\n"
+"kandidātu sarakstā. „Tradicionālā ķīniešu pirms\n"
+"vienkāršotās” novieto tradicionālās rakstzīmes augstāk\n"
+"kandidātu sarakstā. „Visas rakstzīmes” vienkārši rāda visas\n"
+"atbilstības bez īpašas filtrēšanas pēc tradicionālās\n"
+"vai vienkāršotās ķīniešu valodas."
 
 #. Translators: This is the setting to use both
 #. simplified and traditional Chinese but prefer
 #. simplified Chinese
 #: setup/main.py:443
 msgid "Simplified Chinese before traditional"
-msgstr ""
+msgstr "Vienkāršotā ķīniešu pirms tradicionālās"
 
 #. Translators: This is the setting to use both
 #. simplified and traditional Chinese but prefer
 #. traditional Chinese
 #: setup/main.py:448
 msgid "Traditional Chinese before simplified"
-msgstr ""
+msgstr "Tradicionālā ķīniešu pirms vienkāršotās"
 
 #. Translators: A combobox to choose the letter width
 #. while in “Table input” mode.
 #: setup/main.py:479
 msgid "Table input letter width:"
-msgstr ""
+msgstr "Tabulas ievades burtu platums:"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose the letter width while in “Table input” mode.
@@ -505,12 +525,14 @@ msgid ""
 "Whether to use fullwidth or halfwidth\n"
 "letters in table input mode."
 msgstr ""
+"Vai tabulas ievades režīmā lietot pilna\n"
+"platuma vai pusplatuma burtus."
 
 #. Translators: A combobox to choose the punctuation width
 #. while in “Table input” mode.
 #: setup/main.py:523
 msgid "Table input punctuation width:"
-msgstr ""
+msgstr "Tabulas ievades pieturzīmju platums:"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose the punctuation width while in “Table input” mode.
@@ -519,12 +541,14 @@ msgid ""
 "Whether to use fullwidth or halfwidth\n"
 "punctuation in table input mode."
 msgstr ""
+"Vai tabulas ievades režīmā lietot pilna\n"
+"platuma vai pusplatuma pieturzīmes."
 
 #. Translators: A combobox to choose the letter width
 #. while in “Direct input” mode.
 #: setup/main.py:569
 msgid "Direct input letter width:"
-msgstr ""
+msgstr "Tiešās ievades burtu platums:"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose the letter width while in “Direct input” mode.
@@ -533,12 +557,14 @@ msgid ""
 "Whether to use fullwidth or halfwidth\n"
 "letters in direct input mode."
 msgstr ""
+"Vai tiešās ievades režīmā lietot pilna\n"
+"platuma vai pusplatuma burtus."
 
 #. Translators: A combobox to choose the punctuation width
 #. while in “Direct input” mode.
 #: setup/main.py:614
 msgid "Direct input punctuation width:"
-msgstr ""
+msgstr "Tiešās ievades pieturzīmju platums:"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose the punctuation width while in “Direct input” mode.
@@ -547,10 +573,12 @@ msgid ""
 "Whether to use fullwidth or halfwidth\n"
 "punctuation in direct input mode."
 msgstr ""
+"Vai tiešās ievades režīmā lietot pilna\n"
+"platuma vai pusplatuma pieturzīmes."
 
 #: setup/main.py:658
 msgid "Candidate list"
-msgstr ""
+msgstr "Kandidātu saraksts"
 
 #. Translators: A combobox to choose whether
 #. a candidate list should be shown or hidden.
@@ -560,7 +588,7 @@ msgstr ""
 #. the candidate lists is better.
 #: setup/main.py:673
 msgid "Show candidate list"
-msgstr ""
+msgstr "Rādīt kandidātu sarakstu"
 
 #. Translit: A tooltip for the label of the combobox to
 #. choose whether a candidate list should be shown or
@@ -573,12 +601,17 @@ msgid ""
 "input methods like the Russian “translit”, hiding the\n"
 "candidate lists is better."
 msgstr ""
+"Vai kandidātu sarakstus rādīt vai slēpt.\n"
+"Ķīniešu ievades metodēm kandidātu sarakstus\n"
+"parasti vēlas rādīt. Taču dažām ne-ķīniešu\n"
+"ievades metodēm, piemēram, krievu „translit”,\n"
+"labāk kandidātu sarakstus slēpt."
 
 #. Translators: A combobox to choose whether the candidate
 #. window should be drawn horizontally or vertically.
 #: setup/main.py:697
 msgid "Orientation:"
-msgstr "Novietojums:"
+msgstr "Orientācija:"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether the candidate window should be drawn
@@ -588,6 +621,8 @@ msgid ""
 "Whether the lookup table showing the candidates\n"
 "should be vertical or horizontal."
 msgstr ""
+"Vai uzmeklēšanas tabulai, kas rāda kandidātus,\n"
+"jābūt vertikālai vai horizontālai."
 
 #: setup/main.py:708
 msgid "Horizontal"
@@ -617,6 +652,10 @@ msgid ""
 "pages in the lookup table using the page up/down\n"
 "keys or the arrow up/down keys."
 msgstr ""
+"Maksimālais kandidātu skaits vienā\n"
+"uzmeklēšanas tabulas lappusē. Lappuses\n"
+"uzmeklēšanas tabulā var pārslēgt ar taustiņiem\n"
+"Page Up/Page Down vai bultiņām augšup/lejup."
 
 #: setup/main.py:765
 msgid "Current key bindings:"
@@ -665,23 +704,25 @@ msgstr "Iestatīt visu komandu noklusējuma taustiņu sasaistes"
 #. to how often the candidates are used.
 #: setup/main.py:860
 msgid "Dynamic adjust"
-msgstr ""
+msgstr "Dinamiska pielāgošana"
 
 #: setup/main.py:862
 msgid ""
 "Here you can choose whether the order of the candidates is dynamically "
 "adjusted according to how often the candidates are used."
 msgstr ""
+"Šeit varat izvēlēties, vai kandidātu secību dinamiski pielāgot atkarībā no "
+"tā, cik bieži kandidāti tiek lietoti."
 
 #: setup/main.py:874
 msgid "Delete all learned data"
-msgstr "Dzēst apgūtos datus"
+msgstr "Dzēst visus apgūtos datus"
 
 #. Translators: A combobox to choose whether only single
 #. character candidates should be shown.
 #: setup/main.py:898
 msgid "Compose:"
-msgstr "Compose"
+msgstr "Salikšana:"
 
 #. Translators: A tooltip for label of the combobox to
 #. choose whether only single character candidates should
@@ -693,20 +734,24 @@ msgid ""
 "set to “Phrase” candidates consisting of\n"
 "several characters may be shown."
 msgstr ""
+"Ja iestatīts „viena rakstzīme”, tiks rādīti tikai\n"
+"vienas rakstzīmes kandidāti. Ja iestatīts\n"
+"„frāze”, var tikt rādīti kandidāti, kas sastāv\n"
+"no vairākām rakstzīmēm."
 
 #: setup/main.py:910
 msgid "Phrase"
-msgstr "Phrē"
+msgstr "Frāze"
 
 #: setup/main.py:911
 msgid "Single Char"
-msgstr ""
+msgstr "Viena rakstzīme"
 
 #. Translators: A combobox to choose whether the first
 #. candidate will be automatically selected during typing.
 #: setup/main.py:937
 msgid "Auto select"
-msgstr ""
+msgstr "Automātiska atlase"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether the first candidate will be automatically
@@ -724,12 +769,22 @@ msgid ""
 "   (Mostly needed for non-Chinese input methods like\n"
 "   the Russian “translit”)"
 msgstr ""
+"Ja iestatīts „Jā”, tiek darītas šīs 4 lietas:\n"
+"1) Nospiežot „Return”, tiek apstiprināts \n"
+"   kandidāts + jaunas rindas rakstzīme\n"
+"2) Nospiežot Tab, tiek apstiprināts kandidāts\n"
+"3) Apstiprinot ar apstiprināšanas taustiņu, tiek apstiprināts\n"
+"   kandidāts + \" \"\n"
+"4) Ja nākamā ievadītā rakstzīme neatbilst nevienam kandidātam,\n"
+"   tiek apstiprināts iepriekšējās atbilstības pirmais kandidāts.\n"
+"   (Galvenokārt vajadzīgs ne-ķīniešu ievades metodēm, piemēram,\n"
+"   krievu „translit”)"
 
 #. Translators: A combobox to choose whether automatic
 #. commits go into the preëdit or into the application
 #: setup/main.py:967
 msgid "Autocommit mode:"
-msgstr ""
+msgstr "Automātiskās apstiprināšanas režīms:"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether automatic commits go into the preëdit or
@@ -746,12 +801,21 @@ msgid ""
 "into the application, “Normal” means they get committed\n"
 "to preedit."
 msgstr ""
+"Apstiprināšana ar apstiprināšanas taustiņiem vai peli\n"
+"vienmēr apstiprina lietotnē. Šī opcija attiecas uz\n"
+"„automātiskajām” apstiprināšanām, kas var notikt,\n"
+"ja vienkārši turpināt rakstīt, neapstiprinot\n"
+"manuāli. Laiku pa laikam tad notiks „automātiskas”\n"
+"apstiprināšanas.\n"
+"„Tiešs” nozīmē, ka šādas „automātiskās” apstiprināšanas nonāk tieši\n"
+"lietotnē, „Parasts” nozīmē, ka tās tiek apstiprinātas\n"
+"pirmsrediģēšanā."
 
 #. Translators: A combobox to choose whether only single
 #. character candidates should be shown.
 #: setup/main.py:1012
 msgid "Action when typing invalid character:"
-msgstr ""
+msgstr "Darbība, ievadot nederīgu rakstzīmi:"
 
 #. Translators: A tooltip for label of the combobox to
 #. choose whether only single character candidates should
@@ -766,20 +830,27 @@ msgid ""
 "character is typed and the character in question is inserted immediately "
 "after the text that results from the options listed above."
 msgstr ""
+"Nosaka, kas notiek, ja tiek ievadīta rakstzīme, kas nav šīs tabulas derīgo "
+"ievades rakstzīmju kopā: ar „apstiprināt pašreizējo kandidātu” tiek "
+"ievietots pašlaik atlasītais kandidāts. Ar „apstiprināt ievadītos taustiņus” "
+"tā vietā tiek ievietotas kandidātu atlases laikā līdz šim ievadītās "
+"neapstrādātās rakstzīmes. Visos gadījumos kandidātu atlase beidzas, kad tiek "
+"ievadīta nederīga rakstzīme, un attiecīgā rakstzīme tiek ievietota uzreiz "
+"aiz teksta, kas iegūts ar iepriekš minētajām opcijām."
 
 #: setup/main.py:1030
 msgid "Commit current candidate"
-msgstr ""
+msgstr "Apstiprināt pašreizējo kandidātu"
 
 #: setup/main.py:1032
 msgid "Commit typed keys"
-msgstr ""
+msgstr "Apstiprināt ievadītos taustiņus"
 
 #. Translators: A combobox to choose whether a wildcard
 #. should be automatically appended to the input.
 #: setup/main.py:1057
 msgid "Auto wildcard"
-msgstr ""
+msgstr "Automātiska aizstājējzīme"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether a wildcard should be automatically
@@ -789,12 +860,14 @@ msgid ""
 "If yes, a multi wildcard will be automatically\n"
 "appended to the end of the input string."
 msgstr ""
+"Ja „Jā”, ievades virknes beigām automātiski\n"
+"tiks pievienota vairāku rakstzīmju aizstājējzīme."
 
 #. Translators: This single character is a placeholder
 #. to match a any single character
 #: setup/main.py:1079
 msgid "Single wildcard character:"
-msgstr ""
+msgstr "Vienas rakstzīmes aizstājējzīme:"
 
 #. Translators: This is a tooltip for the label of the
 #. entry where one can choose the wildcard to match a
@@ -804,12 +877,14 @@ msgid ""
 "The wildcard to match any single character.\n"
 "Type RETURN or ENTER to confirm after changing the wildcard."
 msgstr ""
+"Aizstājējzīme, kas atbilst jebkurai vienai rakstzīmei.\n"
+"Pēc aizstājējzīmes maiņas nospiediet RETURN vai ENTER, lai apstiprinātu."
 
 #. Translators: This single character is a placeholder
 #. to match any number of characters
 #: setup/main.py:1105
 msgid "Multi wildcard character:"
-msgstr ""
+msgstr "Vairāku rakstzīmju aizstājējzīme:"
 
 #. Translators: This is a tooltip for the label of the
 #. entry where one can choose the wildcard character to
@@ -819,19 +894,21 @@ msgid ""
 "The wildcard used to match any number of characters.\n"
 "Type RETURN or ENTER to confirm after changing the wildcard."
 msgstr ""
+"Aizstājējzīme, kas atbilst jebkuram rakstzīmju skaitam.\n"
+"Pēc aizstājējzīmes maiņas nospiediet RETURN vai ENTER, lai apstiprinātu."
 
 #. Translators: A combobox to choose whether
 #. the color scheme for a dark theme should be used.
 #: setup/main.py:1130
 msgid "Use dark theme"
-msgstr ""
+msgstr "Lietot tumšo motīvu"
 
 #. Translators: A tooltip for the label of the combobox to
 #. choose whether the color scheme for a dark theme should
 #. be used.
 #: setup/main.py:1135
 msgid "If yes, the color scheme for a dark theme will be used."
-msgstr ""
+msgstr "Ja „Jā”, tiks lietota tumšā motīva krāsu shēma."
 
 #. Translators: A checkbox where one can choose whether a
 #. sound is played on error
@@ -845,6 +922,8 @@ msgid ""
 "the simpleaudio module for Python3 is not installed, this option does "
 "nothing."
 msgstr ""
+"Šeit varat izvēlēties, vai kļūdas gadījumā atskaņot skaņas failu. Ja Python3 "
+"modulis simpleaudio nav instalēts, šī opcija neko nedara."
 
 #. Translators: When the debug level is greater than 0,
 #. debug information may be printed to the log file and
@@ -865,7 +944,7 @@ msgstr ""
 
 #: setup/main.py:1615
 msgid "Another instance of this app is already running."
-msgstr ""
+msgstr "Jau darbojas cits šīs lietotnes eksemplārs."
 
 #. Translators: This is the text in the centre of a small
 #. dialog window, trying to confirm whether the user is
@@ -889,8 +968,8 @@ msgid ""
 "Do you really want to delete all data learned from typing and selecting "
 "candidates?"
 msgstr ""
-"Vai tiešām vēlaties dzēst visus valodas datus, kas apgūti rakstot vai lasot "
-"failus?"
+"Vai tiešām vēlaties dzēst visus datus, kas apgūti rakstot un atlasot "
+"kandidātus?"
 
 #: setup/main.py:1921
 msgid "Select .wav sound file:"
@@ -917,13 +996,13 @@ msgstr "Noņemt atlasīto taustiņu sasaisti"
 #. the selected key binding up (higher in priority).
 #: setup/main.py:2224
 msgid "Move key binding up"
-msgstr ""
+msgstr "Pārvietot taustiņu sasaisti augšup"
 
 #. Translators: This is a tooltip for the button to move
 #. the selected key binding down (lower in priority).
 #: setup/main.py:2232
 msgid "Move key binding down"
-msgstr ""
+msgstr "Pārvietot taustiņu sasaisti lejup"
 
 #. Translators: This is the text in the centre of a small
 #. dialog window, trying to confirm whether the user is
