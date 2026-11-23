@@ -1793,13 +1793,13 @@ class Cangjie5TestCase(unittest.TestCase):
         self.assertEqual(ENGINE.mock_committed_text, '日')
 
     def test_type_one_char_and_check_auxiliary(self) -> None:
-        if not require_serial_number(20220111):
+        if not require_serial_number(20261123):
             self.skipTest('serial_number too small')
         assert ENGINE is not None
         ENGINE._do_process_key_event(IBus.KEY_d, 0, 0)
         self.assertEqual(ENGINE.mock_preedit_text, '木')
         self.assertEqual(ENGINE._lookup_table.mock_candidates[6],
-                         '林 木 1000 0')
+                         '寸 戈 1000 0')
         ENGINE._do_process_key_event(IBus.KEY_v, 0, 0)
         ENGINE._do_process_key_event(IBus.KEY_i, 0, 0)
         ENGINE._do_process_key_event(IBus.KEY_i, 0, 0)
