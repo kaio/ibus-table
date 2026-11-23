@@ -36,7 +36,7 @@ from signal import signal, SIGTERM, SIGINT
 from gi import require_version
 require_version('IBus', '1.0')
 from gi.repository import IBus
-from gi.repository import GLib  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+from gi.repository import GLib  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
 # pylint: enable=wrong-import-position
 
 import tabsqlitedb

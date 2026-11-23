@@ -47,12 +47,12 @@ from gi import require_version
 require_version('IBus', '1.0')
 from gi.repository import IBus
 require_version('Gio', '2.0')
-from gi.repository import Gio  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+from gi.repository import Gio  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
 require_version('GLib', '2.0')
-from gi.repository import GLib  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+from gi.repository import GLib  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
 # pylint: enable=wrong-import-position
 #import tabsqlitedb
-from gi.repository import GObject  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+from gi.repository import GObject  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
 import it_util
 import it_active_window
 import it_sound

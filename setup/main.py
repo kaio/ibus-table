@@ -46,9 +46,9 @@ import dbus.service  # type: ignore[import-untyped]
 # pylint: disable=wrong-import-position
 from gi import require_version
 require_version('Gio', '2.0')
-from gi.repository import Gio  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+from gi.repository import Gio  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
 require_version('GLib', '2.0')
-from gi.repository import GLib  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+from gi.repository import GLib  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
 
 # set_prgname before importing other modules to show the name in warning
 # messages when import modules are failed. E.g. Gtk.
@@ -57,7 +57,7 @@ GLib.set_application_name('IBus Table Preferences')
 GLib.set_prgname('ibus-setup-table')
 
 require_version('Pango', '1.0')
-from gi.repository import Pango  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+from gi.repository import Pango  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
 require_version('IBus', '1.0')
 from gi.repository import IBus
 # pylint: enable=wrong-import-position

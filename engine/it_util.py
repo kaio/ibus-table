@@ -34,9 +34,9 @@ import logging
 import gettext
 from gi import require_version
 require_version('Gio', '2.0')
-from gi.repository import Gio  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+from gi.repository import Gio  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
 require_version('GLib', '2.0')
-from gi.repository import GLib  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+from gi.repository import GLib  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
 require_version('IBus', '1.0')
 from gi.repository import IBus
 from it_gtk import Gdk, Gtk, GTK_MAJOR, GTK_VERSION
