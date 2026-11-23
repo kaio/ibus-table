@@ -40,6 +40,17 @@
   <url type="translate">https://translate.fedoraproject.org/projects/ibus-table/</url>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="1.19.1" date="2026-11-23" urgency="medium">
+      <url>https://github.com/mike-fabian/ibus-table/releases/tag/1.19.1</url>
+      <description>
+        <p>This new stable release includes these changes:</p>
+        <ul>
+          <li>
+            Translation update from Weblate (lv 100%)
+          </li>
+        </ul>
+      </description>
+    </release>
     <release version="1.19.0" date="2026-11-09" urgency="medium">
       <url>https://github.com/mike-fabian/ibus-table/releases/tag/1.19.0</url>
       <description>

@@ -1,10 +1,80 @@
-commit e121ca9a7a1aed6f73feec75e06f3b9afbdd1be9
+commit 80d91e7b70f43f8e6f33767015f6f13b82ced2cf
+Author: Mike FABIAN <mfabian@redhat.com>
+Date:   Mon Nov 23 16:39:16 2026 +0100
+
+    Release 1.19.1
+
+commit 1f1f8e2028c34e55d56ce681fbb6f33abafa3f68
+Author: Mike FABIAN <mfabian@redhat.com>
+Date:   Mon Nov 23 16:56:15 2026 +0100
+
+    test_it.py: Adapt cangjie5 test case to ibus-table-chinese-1.8.15
+    
+    ibus-table-chinese-1.8.15 has an updated cangjie5.txt table.
+
+commit 0aeb8c3b5811c21522e3a33a0b8e82ee7bdd0a8b
+Author: Mike FABIAN <mfabian@redhat.com>
+Date:   Mon Nov 23 16:40:30 2026 +0100
+
+    Fix ty warnings
+
+commit 17f08087838c1c9e8c687e3ea830ffa90f59e8f1
+Author: Rihards Prieditis <rprieditis@gmail.com>
+Date:   Fri Nov 20 22:18:33 2026 +0000
+
+    Translated using Weblate (Latvian)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Co-authored-by: Rihards Prieditis <rprieditis@gmail.com>
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/lv/
+    Translation: ibus-table/app
+
+commit 6f1d84f256db70d0c59363a79fb29c812bb04e9b
+Author: Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>
+Date:   Fri Nov 20 22:18:33 2026 +0000
+
+    Translated using Weblate (Latvian)
+    
+    Currently translated at 100.0% (154 of 154 strings)
+    
+    Co-authored-by: Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/lv/
+    Translation: ibus-table/app
+
+commit 840911413a40c61b6ed3640eed448879c12b3d4e
+Author: Rihards Prieditis <rprieditis@gmail.com>
+Date:   Fri Nov 20 22:18:33 2026 +0000
+
+    Added translation using Weblate (Latvian)
+    
+    Co-authored-by: Rihards Prieditis <rprieditis@gmail.com>
+
+commit 688a3aa2a96c5b3ad245d6b6467f38137854c7b2
+Author: Hosted Weblate <hosted@weblate.org>
+Date:   Tue Nov 10 20:09:53 2026 +0000
+
+    Update translation files
+    
+    Updated by "Update PO files to match POT (msgmerge)" hook in Weblate.
+    
+    Co-authored-by: Hosted Weblate <hosted@weblate.org>
+    Translate-URL: https://translate.fedoraproject.org/projects/ibus-table/app/
+    Translation: ibus-table/app
+
+commit baecc36d8eb3757f6441a3e1b6bf1530e0ed0ac8
 Author: Mike FABIAN <mfabian@redhat.com>
 Date:   Mon Nov 9 20:16:40 2026 +0100
 
     Release 1.19.0
 
-commit dce8b24b9a3817b5ed9b5c7a695c04dd6fff6ade
+commit aa08d2e7019391124a9b56296261fed9554862e4
+Author: Mike FABIAN <mfabian@redhat.com>
+Date:   Mon Nov 9 23:09:50 2026 +0100
+
+    Update ibus-table.pot (Only line number changes)
+
+commit cb194d9375a18ca93439e3f6c1cd5469dc55d587
 Author: Mike FABIAN <mfabian@redhat.com>
 Date:   Tue Nov 3 16:31:17 2026 +0100
 
